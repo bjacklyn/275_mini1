@@ -39,6 +39,7 @@ std::optional<std::chrono::year_month_day> convert_date(const std::string_view& 
 
 Collision parseline(const std::string& line) {
 
+    bool is_inside_quote = false;
     std::size_t count = 0;
     std::size_t last_comma = 0;
     std::size_t next_comma = 0;
@@ -46,8 +47,14 @@ Collision parseline(const std::string& line) {
 
     Collision collision{};
     for (char c : line) {
+        if (c == '"') {
+            is_inside_quote = !is_inside_quote;
         // Is this a comma?
-        if (c == ',') {
+        } else if (c == ',') {
+            if (is_inside_quote) {
+                continue;
+            }
+
             next_comma = count;
 
             // Is the field non-empty?
