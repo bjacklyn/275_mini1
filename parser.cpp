@@ -1,5 +1,6 @@
 #include <chrono>
 #include <iostream>
+#include <format>
 #include <fstream>
 #include <string>
 #include <string_view>
@@ -8,9 +9,22 @@ const std::string_view CSV_FILENAME = "Motor_Vehicle_Collisions_-_Crashes_202501
 
 struct Collision {
     std::optional<std::chrono::year_month_day> crash_date;
+    std::optional<std::chrono::hh_mm_ss<std::chrono::minutes>> crash_time;
 };
 
-std::optional<std::chrono::year_month_day> convert_date(const std::string_view& field) {
+std::ostream& operator<<(std::ostream& os, const Collision& collision) {
+    os << "Collision: {";
+
+    os << std::format("crash_date = {}", collision.crash_date.has_value() ?
+        std::format("{:%m/%d/%Y}", *collision.crash_date) : "(no value)") << ", ";
+    os << std::format("crash_time = {}", collision.crash_time.has_value() ?
+        std::format("{:%H:%M}", *collision.crash_time) : "(no value)") << ", ";
+
+    os << "}";
+    return os;
+}
+
+std::optional<std::chrono::year_month_day> convert_year_month_day_date(const std::string_view& field) {
     std::size_t first_slash = field.find('/');
     if (first_slash == std::string_view::npos) {
         std::cerr << "Error parsing date: " << field << std::endl;
@@ -23,7 +37,7 @@ std::optional<std::chrono::year_month_day> convert_date(const std::string_view& 
         return {};
     }
 
-    int month, day, year;
+    unsigned int month, day, year;
 
     auto month_result = std::from_chars(field.data(), field.data() + first_slash, month);
     auto day_result = std::from_chars(field.data() + first_slash + 1, field.data() + second_slash, day);
@@ -35,6 +49,26 @@ std::optional<std::chrono::year_month_day> convert_date(const std::string_view& 
     }
 
     return std::chrono::year_month_day{std::chrono::year(year), std::chrono::month(month), std::chrono::day(day)};
+}
+
+std::optional<std::chrono::hh_mm_ss<std::chrono::minutes>> convert_hour_minute_time(const std::string_view& field) {
+    std::size_t colon_index = field.find(':');
+    if (colon_index == std::string_view::npos) {
+        std::cerr << "Error parsing time: " << field << std::endl;
+        return {};
+    }
+
+    unsigned int hour, minute;
+
+    auto hour_result = std::from_chars(field.data(), field.data() + colon_index, hour);
+    auto minute_result = std::from_chars(field.data() + colon_index + 1, field.data() + field.size(), minute);
+
+    if (hour_result.ec != std::errc() || minute_result.ec != std::errc()) {
+        std::cerr << "Error parsing time: " << field << std::endl;
+        return {};
+    }
+
+    return std::chrono::hh_mm_ss{std::chrono::hours(hour) + std::chrono::minutes(minute)};
 }
 
 Collision parseline(const std::string& line) {
@@ -59,11 +93,14 @@ Collision parseline(const std::string& line) {
 
             // Is the field non-empty?
             if ((next_comma - last_comma) > 1) {
-                std::string_view field = {line.data() + last_comma, next_comma - last_comma};
+                std::string_view field = {line.data() + last_comma + (field_index > 0 ? 1 : 0), next_comma - last_comma};
 
                 switch(field_index) {
                     case 0:
-                        collision.crash_date = convert_date(field);
+                        collision.crash_date = convert_year_month_day_date(field);
+                        break;
+                    case 1:
+                        collision.crash_time = convert_hour_minute_time(field);
                         break;
 //                    default:
 //                        std::cerr << "Unknown field_index: " << field_index << std::endl;
@@ -111,4 +148,9 @@ int main() {
     }
 
     std::vector<Collision> collisions = parsefile(file);
+
+    const Collision& collision = collisions.at(0);
+    std::cout << collision << std::endl;
+    std::cout << collisions.at(1) << std::endl;
+    std::cout << collisions.at(2) << std::endl;
 }
