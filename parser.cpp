@@ -14,6 +14,10 @@ struct Collision {
     std::optional<std::size_t> zip_code;
     std::optional<float> latitude;
     std::optional<float> longitude;
+    std::optional<std::string> location;
+    std::optional<std::string> on_street_name;
+    std::optional<std::string> cross_street_name;
+    std::optional<std::string> off_street_name;
 };
 
 std::ostream& operator<<(std::ostream& os, const Collision& collision) {
@@ -31,6 +35,14 @@ std::ostream& operator<<(std::ostream& os, const Collision& collision) {
         std::to_string(*collision.latitude) : "(no value)") << ", ";
     os << std::format("longitude = {}", collision.longitude.has_value() ?
         std::to_string(*collision.longitude) : "(no value)") << ", ";
+    os << std::format("location = {}", collision.location.has_value() ?
+        *collision.location : "(no value)") << ", ";
+    os << std::format("on_street_name = {}", collision.on_street_name.has_value() ?
+        *collision.on_street_name : "(no value)") << ", ";
+    os << std::format("cross_street_name = {}", collision.cross_street_name.has_value() ?
+        *collision.cross_street_name : "(no value)") << ", ";
+    os << std::format("off_street_name = {}", collision.off_street_name.has_value() ?
+        *collision.off_street_name : "(no value)") << ", ";
 
     os << "}";
     return os;
@@ -120,6 +132,8 @@ Collision parseline(const std::string& line) {
 
     Collision collision{};
     for (char c : line) {
+        count++;
+
         if (c == '"') {
             is_inside_quote = !is_inside_quote;
         // Is this a comma?
@@ -128,7 +142,7 @@ Collision parseline(const std::string& line) {
                 continue;
             }
 
-            next_comma = count;
+            next_comma = count - 1;
 
             // Is the field non-empty?
             if ((next_comma - last_comma) > 1) {
@@ -154,6 +168,19 @@ Collision parseline(const std::string& line) {
                         case 5:
                             collision.longitude = convert_number<float>(field);
                             break;
+                        case 6:
+                            collision.location = convert_string(field);
+                            break;
+                        case 7:
+                            collision.on_street_name = convert_string(field);
+                            break;
+                        case 8:
+                            collision.cross_street_name = convert_string(field);
+                            break;
+                        case 9:
+                            collision.off_street_name = convert_string(field);
+                            break;
+
 //                        default:
 //                            std::cerr << "Unknown field_index: " << field_index << std::endl;
                     }
@@ -163,8 +190,6 @@ Collision parseline(const std::string& line) {
             last_comma = next_comma;
             field_index++;
         }
-
-        count++;
     }
 
     if (field_index != 28) {
