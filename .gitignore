@@ -1,2 +1,4 @@
 *.csv
 *.tar.gz
+build
+.vscode
