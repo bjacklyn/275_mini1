@@ -294,9 +294,8 @@ Collision parseline(const std::string& line) {
                         case 28:
                             collision.vehicle_type_code_5 = convert_string(field);
                             break;
-
-//                        default:
-//                            std::cerr << "Unknown field_index: " << field_index << std::endl;
+                        default:
+                            std::cerr << "Unknown field_index: " << field_index << std::endl;
                     }
                 }
             }
