@@ -337,12 +337,12 @@ int main(int argc, char *argv[])
 {
     if (argc != 2)
     {
-        std::cerr << "Usage: " << argv[0] << "Motor_VehicleCollisions-_Crashes_20250123.csv" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " <path to CSV file to be parsed> " << std::endl;
         return 1;
     }
 
     std::string filename = argv[1];
-    std::ifstream file{std::filesystem::current_path().parent_path() / filename};
+    std::ifstream file{filename};
 
     if (!file.is_open())
     {
