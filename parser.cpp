@@ -12,6 +12,8 @@ struct Collision {
     std::optional<std::chrono::hh_mm_ss<std::chrono::minutes>> crash_time;
     std::optional<std::string> borough;
     std::optional<std::size_t> zip_code;
+    std::optional<float> latitude;
+    std::optional<float> longitude;
 };
 
 std::ostream& operator<<(std::ostream& os, const Collision& collision) {
@@ -25,6 +27,10 @@ std::ostream& operator<<(std::ostream& os, const Collision& collision) {
         *collision.borough : "(no value)") << ", ";
     os << std::format("zip_code = {}", collision.zip_code.has_value() ?
         std::to_string(*collision.zip_code) : "(no value)") << ", ";
+    os << std::format("latitude = {}", collision.latitude.has_value() ?
+        std::to_string(*collision.latitude) : "(no value)") << ", ";
+    os << std::format("longitude = {}", collision.longitude.has_value() ?
+        std::to_string(*collision.longitude) : "(no value)") << ", ";
 
     os << "}";
     return os;
@@ -90,8 +96,9 @@ std::optional<std::string> convert_string(const std::string_view& field) {
     return std::string(field);
 }
 
-std::optional<std::size_t> convert_integer_number(const std::string_view& field) {
-    std::size_t number;
+template<typename T>
+std::optional<T> convert_number(const std::string_view& field) {
+    T number;
 
     auto number_result = std::from_chars(field.data(), field.data() + field.size(), number);
 
@@ -139,7 +146,13 @@ Collision parseline(const std::string& line) {
                             collision.borough = convert_string(field);
                             break;
                         case 3:
-                            collision.zip_code = convert_integer_number(field);
+                            collision.zip_code = convert_number<std::size_t>(field);
+                            break;
+                        case 4:
+                            collision.latitude = convert_number<float>(field);
+                            break;
+                        case 5:
+                            collision.longitude = convert_number<float>(field);
                             break;
 //                        default:
 //                            std::cerr << "Unknown field_index: " << field_index << std::endl;
