@@ -26,6 +26,11 @@ struct Collision {
     std::optional<std::size_t> number_of_cyclist_killed;
     std::optional<std::size_t> number_of_motorist_injured;
     std::optional<std::size_t> number_of_motorist_killed;
+    std::optional<std::string> contributing_factor_vehicle_1;
+    std::optional<std::string> contributing_factor_vehicle_2;
+    std::optional<std::string> contributing_factor_vehicle_3;
+    std::optional<std::string> contributing_factor_vehicle_4;
+    std::optional<std::string> contributing_factor_vehicle_5;
 };
 
 std::ostream& operator<<(std::ostream& os, const Collision& collision) {
@@ -67,6 +72,16 @@ std::ostream& operator<<(std::ostream& os, const Collision& collision) {
         std::to_string(*collision.number_of_motorist_injured) : "(no value)") << ", ";
     os << std::format("number_of_motorist_killed = {}", collision.number_of_motorist_killed.has_value() ?
         std::to_string(*collision.number_of_motorist_killed) : "(no value)") << ", ";
+    os << std::format("contributing_factor_vehicle_1 = {}", collision.contributing_factor_vehicle_1.has_value() ?
+        *collision.contributing_factor_vehicle_1 : "(no value)") << ", ";
+    os << std::format("contributing_factor_vehicle_2 = {}", collision.contributing_factor_vehicle_2.has_value() ?
+        *collision.contributing_factor_vehicle_2 : "(no value)") << ", ";
+    os << std::format("contributing_factor_vehicle_3 = {}", collision.contributing_factor_vehicle_3.has_value() ?
+        *collision.contributing_factor_vehicle_3 : "(no value)") << ", ";
+    os << std::format("contributing_factor_vehicle_4 = {}", collision.contributing_factor_vehicle_4.has_value() ?
+        *collision.contributing_factor_vehicle_4 : "(no value)") << ", ";
+    os << std::format("contributing_factor_vehicle_5 = {}", collision.contributing_factor_vehicle_5.has_value() ?
+        *collision.contributing_factor_vehicle_5 : "(no value)") << ", ";
 
     os << "}";
     return os;
@@ -227,6 +242,21 @@ Collision parseline(const std::string& line) {
                             break;
                         case 17:
                             collision.number_of_motorist_killed = convert_number<std::size_t>(field);
+                            break;
+                        case 18:
+                            collision.contributing_factor_vehicle_1 = convert_string(field);
+                            break;
+                        case 19:
+                            collision.contributing_factor_vehicle_2 = convert_string(field);
+                            break;
+                        case 20:
+                            collision.contributing_factor_vehicle_3 = convert_string(field);
+                            break;
+                        case 21:
+                            collision.contributing_factor_vehicle_4 = convert_string(field);
+                            break;
+                        case 22:
+                            collision.contributing_factor_vehicle_5 = convert_string(field);
                             break;
 
 //                        default:
