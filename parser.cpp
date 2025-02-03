@@ -31,6 +31,7 @@ struct Collision {
     std::optional<std::string> contributing_factor_vehicle_3;
     std::optional<std::string> contributing_factor_vehicle_4;
     std::optional<std::string> contributing_factor_vehicle_5;
+    std::optional<std::size_t> collision_id;
 };
 
 std::ostream& operator<<(std::ostream& os, const Collision& collision) {
@@ -82,6 +83,8 @@ std::ostream& operator<<(std::ostream& os, const Collision& collision) {
         *collision.contributing_factor_vehicle_4 : "(no value)") << ", ";
     os << std::format("contributing_factor_vehicle_5 = {}", collision.contributing_factor_vehicle_5.has_value() ?
         *collision.contributing_factor_vehicle_5 : "(no value)") << ", ";
+    os << std::format("collision_id = {}", collision.collision_id.has_value() ?
+        std::to_string(*collision.collision_id) : "(no value)") << ", ";
 
     os << "}";
     return os;
@@ -257,6 +260,9 @@ Collision parseline(const std::string& line) {
                             break;
                         case 22:
                             collision.contributing_factor_vehicle_5 = convert_string(field);
+                            break;
+                        case 23:
+                            collision.collision_id = convert_number<std::size_t>(field);
                             break;
 
 //                        default:
