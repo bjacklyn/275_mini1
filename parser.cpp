@@ -18,6 +18,14 @@ struct Collision {
     std::optional<std::string> on_street_name;
     std::optional<std::string> cross_street_name;
     std::optional<std::string> off_street_name;
+    std::optional<std::size_t> number_of_persons_injured;
+    std::optional<std::size_t> number_of_persons_killed;
+    std::optional<std::size_t> number_of_pedestrians_injured;
+    std::optional<std::size_t> number_of_pedestrians_killed;
+    std::optional<std::size_t> number_of_cyclist_injured;
+    std::optional<std::size_t> number_of_cyclist_killed;
+    std::optional<std::size_t> number_of_motorist_injured;
+    std::optional<std::size_t> number_of_motorist_killed;
 };
 
 std::ostream& operator<<(std::ostream& os, const Collision& collision) {
@@ -43,6 +51,22 @@ std::ostream& operator<<(std::ostream& os, const Collision& collision) {
         *collision.cross_street_name : "(no value)") << ", ";
     os << std::format("off_street_name = {}", collision.off_street_name.has_value() ?
         *collision.off_street_name : "(no value)") << ", ";
+    os << std::format("number_of_persons_injured = {}", collision.number_of_persons_injured.has_value() ?
+        std::to_string(*collision.number_of_persons_injured) : "(no value)") << ", ";
+    os << std::format("number_of_persons_killed = {}", collision.number_of_persons_killed.has_value() ?
+        std::to_string(*collision.number_of_persons_killed) : "(no value)") << ", ";
+    os << std::format("number_of_pedestrians_injured = {}", collision.number_of_pedestrians_injured.has_value() ?
+        std::to_string(*collision.number_of_pedestrians_injured) : "(no value)") << ", ";
+    os << std::format("number_of_pedestrians_killed = {}", collision.number_of_pedestrians_killed.has_value() ?
+        std::to_string(*collision.number_of_pedestrians_killed) : "(no value)") << ", ";
+    os << std::format("number_of_cyclist_injured = {}", collision.number_of_cyclist_injured.has_value() ?
+        std::to_string(*collision.number_of_cyclist_injured) : "(no value)") << ", ";
+    os << std::format("number_of_cyclist_killed = {}", collision.number_of_cyclist_killed.has_value() ?
+        std::to_string(*collision.number_of_cyclist_killed) : "(no value)") << ", ";
+    os << std::format("number_of_motorist_injured = {}", collision.number_of_motorist_injured.has_value() ?
+        std::to_string(*collision.number_of_motorist_injured) : "(no value)") << ", ";
+    os << std::format("number_of_motorist_killed = {}", collision.number_of_motorist_killed.has_value() ?
+        std::to_string(*collision.number_of_motorist_killed) : "(no value)") << ", ";
 
     os << "}";
     return os;
@@ -179,6 +203,30 @@ Collision parseline(const std::string& line) {
                             break;
                         case 9:
                             collision.off_street_name = convert_string(field);
+                            break;
+                        case 10:
+                            collision.number_of_persons_injured = convert_number<std::size_t>(field);
+                            break;
+                        case 11:
+                            collision.number_of_persons_killed = convert_number<std::size_t>(field);
+                            break;
+                        case 12:
+                            collision.number_of_pedestrians_injured = convert_number<std::size_t>(field);
+                            break;
+                        case 13:
+                            collision.number_of_pedestrians_killed = convert_number<std::size_t>(field);
+                            break;
+                        case 14:
+                            collision.number_of_cyclist_injured = convert_number<std::size_t>(field);
+                            break;
+                        case 15:
+                            collision.number_of_cyclist_killed = convert_number<std::size_t>(field);
+                            break;
+                        case 16:
+                            collision.number_of_motorist_injured = convert_number<std::size_t>(field);
+                            break;
+                        case 17:
+                            collision.number_of_motorist_killed = convert_number<std::size_t>(field);
                             break;
 
 //                        default:
