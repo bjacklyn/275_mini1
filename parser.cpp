@@ -32,6 +32,11 @@ struct Collision {
     std::optional<std::string> contributing_factor_vehicle_4;
     std::optional<std::string> contributing_factor_vehicle_5;
     std::optional<std::size_t> collision_id;
+    std::optional<std::string> vehicle_type_code_1;
+    std::optional<std::string> vehicle_type_code_2;
+    std::optional<std::string> vehicle_type_code_3;
+    std::optional<std::string> vehicle_type_code_4;
+    std::optional<std::string> vehicle_type_code_5;
 };
 
 std::ostream& operator<<(std::ostream& os, const Collision& collision) {
@@ -85,6 +90,16 @@ std::ostream& operator<<(std::ostream& os, const Collision& collision) {
         *collision.contributing_factor_vehicle_5 : "(no value)") << ", ";
     os << std::format("collision_id = {}", collision.collision_id.has_value() ?
         std::to_string(*collision.collision_id) : "(no value)") << ", ";
+    os << std::format("vehicle_type_code_1 = {}", collision.vehicle_type_code_1.has_value() ?
+        *collision.vehicle_type_code_1 : "(no value)") << ", ";
+    os << std::format("vehicle_type_code_2 = {}", collision.vehicle_type_code_2.has_value() ?
+        *collision.vehicle_type_code_2 : "(no value)") << ", ";
+    os << std::format("vehicle_type_code_3 = {}", collision.vehicle_type_code_3.has_value() ?
+        *collision.vehicle_type_code_3 : "(no value)") << ", ";
+    os << std::format("vehicle_type_code_4 = {}", collision.vehicle_type_code_4.has_value() ?
+        *collision.vehicle_type_code_4 : "(no value)") << ", ";
+    os << std::format("vehicle_type_code_5 = {}", collision.vehicle_type_code_5.has_value() ?
+        *collision.vehicle_type_code_5 : "(no value)") << ", ";
 
     os << "}";
     return os;
@@ -263,6 +278,21 @@ Collision parseline(const std::string& line) {
                             break;
                         case 23:
                             collision.collision_id = convert_number<std::size_t>(field);
+                            break;
+                        case 24:
+                            collision.vehicle_type_code_1 = convert_string(field);
+                            break;
+                        case 25:
+                            collision.vehicle_type_code_2 = convert_string(field);
+                            break;
+                        case 26:
+                            collision.vehicle_type_code_3 = convert_string(field);
+                            break;
+                        case 27:
+                            collision.vehicle_type_code_4 = convert_string(field);
+                            break;
+                        case 28:
+                            collision.vehicle_type_code_5 = convert_string(field);
                             break;
 
 //                        default:
