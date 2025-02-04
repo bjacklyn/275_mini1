@@ -2,6 +2,7 @@
 #include <iostream>
 #include <format>
 #include <fstream>
+#include <omp.h>
 #include <string>
 #include <string_view>
 
@@ -314,7 +315,7 @@ Collision parseline(const std::string& line) {
 
 std::vector<Collision> parsefile(std::ifstream& file) {
     std::string line;
-    std::vector<Collision> collisions;
+    std::vector<std::string> lines;
 
     bool is_first_line = true;
     while (std::getline(file, line)) {
@@ -323,8 +324,23 @@ std::vector<Collision> parsefile(std::ifstream& file) {
             continue;
         }
 
+        lines.push_back(line);
+    }
+
+    std::vector<Collision> collisions;
+
+    unsigned long num_threads = omp_get_max_threads();
+    std::vector<std::vector<Collision>> thread_local_collisions{num_threads};
+
+    #pragma omp parallel for schedule(static)
+    for (const std::string& line : lines) {
         Collision collision = parseline(line);
-        collisions.push_back(collision);
+        int thread_id = omp_get_thread_num();
+        thread_local_collisions[thread_id].push_back(collision);
+    }
+
+    for (const auto& thread_collisions : thread_local_collisions) {
+        collisions.insert(collisions.end(), thread_collisions.begin(), thread_collisions.end());
     }
 
     return collisions;
