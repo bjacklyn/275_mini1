@@ -1,3 +1,7 @@
+#include "collision_parser.hpp"
+
+#include "collision.hpp"
+
 #include <chrono>
 #include <iostream>
 #include <format>
@@ -5,105 +9,7 @@
 #include <string>
 #include <string_view>
 
-const std::string_view CSV_FILENAME = "Motor_Vehicle_Collisions_-_Crashes_20250123.csv";
-
-struct Collision {
-    std::optional<std::chrono::year_month_day> crash_date;
-    std::optional<std::chrono::hh_mm_ss<std::chrono::minutes>> crash_time;
-    std::optional<std::string> borough;
-    std::optional<std::size_t> zip_code;
-    std::optional<float> latitude;
-    std::optional<float> longitude;
-    std::optional<std::string> location;
-    std::optional<std::string> on_street_name;
-    std::optional<std::string> cross_street_name;
-    std::optional<std::string> off_street_name;
-    std::optional<std::size_t> number_of_persons_injured;
-    std::optional<std::size_t> number_of_persons_killed;
-    std::optional<std::size_t> number_of_pedestrians_injured;
-    std::optional<std::size_t> number_of_pedestrians_killed;
-    std::optional<std::size_t> number_of_cyclist_injured;
-    std::optional<std::size_t> number_of_cyclist_killed;
-    std::optional<std::size_t> number_of_motorist_injured;
-    std::optional<std::size_t> number_of_motorist_killed;
-    std::optional<std::string> contributing_factor_vehicle_1;
-    std::optional<std::string> contributing_factor_vehicle_2;
-    std::optional<std::string> contributing_factor_vehicle_3;
-    std::optional<std::string> contributing_factor_vehicle_4;
-    std::optional<std::string> contributing_factor_vehicle_5;
-    std::optional<std::size_t> collision_id;
-    std::optional<std::string> vehicle_type_code_1;
-    std::optional<std::string> vehicle_type_code_2;
-    std::optional<std::string> vehicle_type_code_3;
-    std::optional<std::string> vehicle_type_code_4;
-    std::optional<std::string> vehicle_type_code_5;
-};
-
-std::ostream& operator<<(std::ostream& os, const Collision& collision) {
-    os << "Collision: {";
-
-    os << std::format("crash_date = {}", collision.crash_date.has_value() ?
-        std::format("{:%m/%d/%Y}", *collision.crash_date) : "(no value)") << ", ";
-    os << std::format("crash_time = {}", collision.crash_time.has_value() ?
-        std::format("{:%H:%M}", *collision.crash_time) : "(no value)") << ", ";
-    os << std::format("borough = {}", collision.borough.has_value() ?
-        *collision.borough : "(no value)") << ", ";
-    os << std::format("zip_code = {}", collision.zip_code.has_value() ?
-        std::to_string(*collision.zip_code) : "(no value)") << ", ";
-    os << std::format("latitude = {}", collision.latitude.has_value() ?
-        std::to_string(*collision.latitude) : "(no value)") << ", ";
-    os << std::format("longitude = {}", collision.longitude.has_value() ?
-        std::to_string(*collision.longitude) : "(no value)") << ", ";
-    os << std::format("location = {}", collision.location.has_value() ?
-        *collision.location : "(no value)") << ", ";
-    os << std::format("on_street_name = {}", collision.on_street_name.has_value() ?
-        *collision.on_street_name : "(no value)") << ", ";
-    os << std::format("cross_street_name = {}", collision.cross_street_name.has_value() ?
-        *collision.cross_street_name : "(no value)") << ", ";
-    os << std::format("off_street_name = {}", collision.off_street_name.has_value() ?
-        *collision.off_street_name : "(no value)") << ", ";
-    os << std::format("number_of_persons_injured = {}", collision.number_of_persons_injured.has_value() ?
-        std::to_string(*collision.number_of_persons_injured) : "(no value)") << ", ";
-    os << std::format("number_of_persons_killed = {}", collision.number_of_persons_killed.has_value() ?
-        std::to_string(*collision.number_of_persons_killed) : "(no value)") << ", ";
-    os << std::format("number_of_pedestrians_injured = {}", collision.number_of_pedestrians_injured.has_value() ?
-        std::to_string(*collision.number_of_pedestrians_injured) : "(no value)") << ", ";
-    os << std::format("number_of_pedestrians_killed = {}", collision.number_of_pedestrians_killed.has_value() ?
-        std::to_string(*collision.number_of_pedestrians_killed) : "(no value)") << ", ";
-    os << std::format("number_of_cyclist_injured = {}", collision.number_of_cyclist_injured.has_value() ?
-        std::to_string(*collision.number_of_cyclist_injured) : "(no value)") << ", ";
-    os << std::format("number_of_cyclist_killed = {}", collision.number_of_cyclist_killed.has_value() ?
-        std::to_string(*collision.number_of_cyclist_killed) : "(no value)") << ", ";
-    os << std::format("number_of_motorist_injured = {}", collision.number_of_motorist_injured.has_value() ?
-        std::to_string(*collision.number_of_motorist_injured) : "(no value)") << ", ";
-    os << std::format("number_of_motorist_killed = {}", collision.number_of_motorist_killed.has_value() ?
-        std::to_string(*collision.number_of_motorist_killed) : "(no value)") << ", ";
-    os << std::format("contributing_factor_vehicle_1 = {}", collision.contributing_factor_vehicle_1.has_value() ?
-        *collision.contributing_factor_vehicle_1 : "(no value)") << ", ";
-    os << std::format("contributing_factor_vehicle_2 = {}", collision.contributing_factor_vehicle_2.has_value() ?
-        *collision.contributing_factor_vehicle_2 : "(no value)") << ", ";
-    os << std::format("contributing_factor_vehicle_3 = {}", collision.contributing_factor_vehicle_3.has_value() ?
-        *collision.contributing_factor_vehicle_3 : "(no value)") << ", ";
-    os << std::format("contributing_factor_vehicle_4 = {}", collision.contributing_factor_vehicle_4.has_value() ?
-        *collision.contributing_factor_vehicle_4 : "(no value)") << ", ";
-    os << std::format("contributing_factor_vehicle_5 = {}", collision.contributing_factor_vehicle_5.has_value() ?
-        *collision.contributing_factor_vehicle_5 : "(no value)") << ", ";
-    os << std::format("collision_id = {}", collision.collision_id.has_value() ?
-        std::to_string(*collision.collision_id) : "(no value)") << ", ";
-    os << std::format("vehicle_type_code_1 = {}", collision.vehicle_type_code_1.has_value() ?
-        *collision.vehicle_type_code_1 : "(no value)") << ", ";
-    os << std::format("vehicle_type_code_2 = {}", collision.vehicle_type_code_2.has_value() ?
-        *collision.vehicle_type_code_2 : "(no value)") << ", ";
-    os << std::format("vehicle_type_code_3 = {}", collision.vehicle_type_code_3.has_value() ?
-        *collision.vehicle_type_code_3 : "(no value)") << ", ";
-    os << std::format("vehicle_type_code_4 = {}", collision.vehicle_type_code_4.has_value() ?
-        *collision.vehicle_type_code_4 : "(no value)") << ", ";
-    os << std::format("vehicle_type_code_5 = {}", collision.vehicle_type_code_5.has_value() ?
-        *collision.vehicle_type_code_5 : "(no value)") << ", ";
-
-    os << "}";
-    return os;
-}
+namespace {
 
 bool contains_non_whitespace(const std::string_view& field) {
     for (char c : field) {
@@ -312,7 +218,18 @@ Collision parseline(const std::string& line) {
     return collision;
 }
 
-std::vector<Collision> parsefile(std::ifstream& file) {
+}  // namespace
+
+CollisionParser::CollisionParser(const std::string& filename)
+  : filename(filename) {}
+
+std::vector<Collision> CollisionParser::parse() {
+    std::ifstream file{std::string(this->filename)};
+
+    if (!file.is_open()) {
+        throw std::runtime_error("Could not open file " + this->filename);
+    }
+
     std::string line;
     std::vector<Collision> collisions;
 
@@ -328,23 +245,4 @@ std::vector<Collision> parsefile(std::ifstream& file) {
     }
 
     return collisions;
-}
-
-int main() {
-    std::ifstream file{std::string(CSV_FILENAME)};
-
-    if (!file.is_open()) {
-        std::cerr << "Could not open file " << CSV_FILENAME << std::endl;
-        return 1;
-    }
-
-    std::vector<Collision> collisions = parsefile(file);
-
-    const Collision& collision = collisions.at(0);
-    std::cout << collision << std::endl;
-    std::cout << collisions.at(1) << std::endl;
-    std::cout << collisions.at(2) << std::endl;
-    std::cout << collisions.at(3) << std::endl;
-    std::cout << collisions.at(4) << std::endl;
-    std::cout << collisions.at(5) << std::endl;
 }
