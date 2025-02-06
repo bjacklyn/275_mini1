@@ -1,7 +1,11 @@
 #include "collision_manager.hpp"
 #include "collision_parser.hpp"
+#include "collision.hpp"
 
 #include <string>
+#include <chrono>
+#include <optional>
+#include <vector>
 
 
 CollisionManager::CollisionManager(const std::string& filename) {
@@ -25,6 +29,7 @@ const std::string& CollisionManager::get_initialization_error() {
 }
 
 const std::vector<const Collision*> CollisionManager::search() {
+
     std::vector<const Collision*> results;
 
     for (const Collision& collision : this->collisions) {
@@ -32,6 +37,29 @@ const std::vector<const Collision*> CollisionManager::search() {
             results.push_back(&collision);
         }
     }
-
     return results;
+}
+
+const std::vector<const Collision*> CollisionManager::getAllCollisions() {
+    std::vector<const Collision*> results;
+
+    for(const Collision& collision : this->collisions) {
+        results.push_back(&collision);
+    }
+    return results;
+}
+
+const std::vector<const Collision*> CollisionManager::getCollisionRange(const std::chrono::year_month_day& startDate,const std::chrono::year_month_day& endDate) {
+    std::vector<const Collision*> results;
+
+    for(const Collision& collision : this->collisions) {
+        if(collision.crash_date.has_value()) {
+            const std::chrono::year_month_day date = collision.crash_date.value();
+            if (date >= startDate && date <= endDate) {
+                results.push_back(&collision);
+            }
+        }
+    }
+    return results;
+
 }

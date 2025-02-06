@@ -79,11 +79,14 @@ std::optional<T> convert_number(const std::string_view& field) {
 
     if (number_result.ec != std::errc()) {
         std::cerr << "Error parsing number: " << std::quoted(field) << std::endl;
+        std::exit;
         return {};
     }
 
     return number;
 }
+
+
 
 Collision parseline(const std::string& line) {
 
@@ -108,8 +111,17 @@ Collision parseline(const std::string& line) {
             next_comma = count - 1;
 
             // Is the field non-empty?
-            if ((next_comma - last_comma) > 1) {
-                std::string_view field = {line.data() + last_comma + (field_index > 0 ? 1 : 0), next_comma - last_comma - 1};
+            if ((next_comma - last_comma) > 1)
+            {
+                std::string_view field;
+                if (field_index == 0)
+                {
+                    field = std::string_view{line.data() + last_comma, next_comma - last_comma};
+                }
+                else
+                {
+                    field = std::string_view{line.data() + last_comma + 1, next_comma - last_comma - 1};
+                }
 
                 if (contains_non_whitespace(field)) {
                     CollisionField collision_field = CollisionField::UNDEFINED;
