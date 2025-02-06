@@ -112,94 +112,100 @@ Collision parseline(const std::string& line) {
                 std::string_view field = {line.data() + last_comma + (field_index > 0 ? 1 : 0), next_comma - last_comma - 1};
 
                 if (contains_non_whitespace(field)) {
-                    switch(field_index) {
-                        case 0:
+                    CollisionField collision_field = CollisionField::UNDEFINED;
+                    if (field_index < static_cast<std::underlying_type_t<CollisionField>>(CollisionField::UNDEFINED)) {
+                        collision_field = static_cast<CollisionField>(field_index);
+                    }
+
+                    switch(collision_field) {
+                        case CollisionField::CRASH_DATE:
                             collision.crash_date = convert_year_month_day_date(field);
                             break;
-                        case 1:
+                        case CollisionField::CRASH_TIME:
                             collision.crash_time = convert_hour_minute_time(field);
                             break;
-                        case 2:
+                        case CollisionField::BOROUGH:
                             collision.borough = convert_string(field);
                             break;
-                        case 3:
+                        case CollisionField::ZIP_CODE:
                             collision.zip_code = convert_number<std::size_t>(field);
                             break;
-                        case 4:
+                        case CollisionField::LATITUDE:
                             collision.latitude = convert_number<float>(field);
                             break;
-                        case 5:
+                        case CollisionField::LONGITUDE:
                             collision.longitude = convert_number<float>(field);
                             break;
-                        case 6:
+                        case CollisionField::LOCATION:
                             collision.location = convert_string(field);
                             break;
-                        case 7:
+                        case CollisionField::ON_STREET_NAME:
                             collision.on_street_name = convert_string(field);
                             break;
-                        case 8:
+                        case CollisionField::CROSS_STREET_NAME:
                             collision.cross_street_name = convert_string(field);
                             break;
-                        case 9:
+                        case CollisionField::OFF_STREET_NAME:
                             collision.off_street_name = convert_string(field);
                             break;
-                        case 10:
+                        case CollisionField::NUMBER_OF_PERSONS_INJURED:
                             collision.number_of_persons_injured = convert_number<std::size_t>(field);
                             break;
-                        case 11:
+                        case CollisionField::NUMBER_OF_PERSONS_KILLED:
                             collision.number_of_persons_killed = convert_number<std::size_t>(field);
                             break;
-                        case 12:
+                        case CollisionField::NUMBER_OF_PEDESTRIANS_INJURED:
                             collision.number_of_pedestrians_injured = convert_number<std::size_t>(field);
                             break;
-                        case 13:
+                        case CollisionField::NUMBER_OF_PEDESTRIANS_KILLED:
                             collision.number_of_pedestrians_killed = convert_number<std::size_t>(field);
                             break;
-                        case 14:
+                        case CollisionField::NUMBER_OF_CYCLIST_INJURED:
                             collision.number_of_cyclist_injured = convert_number<std::size_t>(field);
                             break;
-                        case 15:
+                        case CollisionField::NUMBER_OF_CYCLIST_KILLED:
                             collision.number_of_cyclist_killed = convert_number<std::size_t>(field);
                             break;
-                        case 16:
+                        case CollisionField::NUMBER_OF_MOTORIST_INJURED:
                             collision.number_of_motorist_injured = convert_number<std::size_t>(field);
                             break;
-                        case 17:
+                        case CollisionField::NUMBER_OF_MOTORIST_KILLED:
                             collision.number_of_motorist_killed = convert_number<std::size_t>(field);
                             break;
-                        case 18:
+                        case CollisionField::CONTRIBUTING_FACTOR_VEHICLE_1:
                             collision.contributing_factor_vehicle_1 = convert_string(field);
                             break;
-                        case 19:
+                        case CollisionField::CONTRIBUTING_FACTOR_VEHICLE_2:
                             collision.contributing_factor_vehicle_2 = convert_string(field);
                             break;
-                        case 20:
+                        case CollisionField::CONTRIBUTING_FACTOR_VEHICLE_3:
                             collision.contributing_factor_vehicle_3 = convert_string(field);
                             break;
-                        case 21:
+                        case CollisionField::CONTRIBUTING_FACTOR_VEHICLE_4:
                             collision.contributing_factor_vehicle_4 = convert_string(field);
                             break;
-                        case 22:
+                        case CollisionField::CONTRIBUTING_FACTOR_VEHICLE_5:
                             collision.contributing_factor_vehicle_5 = convert_string(field);
                             break;
-                        case 23:
+                        case CollisionField::COLLISION_ID:
                             collision.collision_id = convert_number<std::size_t>(field);
                             break;
-                        case 24:
+                        case CollisionField::VEHICLE_TYPE_CODE_1:
                             collision.vehicle_type_code_1 = convert_string(field);
                             break;
-                        case 25:
+                        case CollisionField::VEHICLE_TYPE_CODE_2:
                             collision.vehicle_type_code_2 = convert_string(field);
                             break;
-                        case 26:
+                        case CollisionField::VEHICLE_TYPE_CODE_3:
                             collision.vehicle_type_code_3 = convert_string(field);
                             break;
-                        case 27:
+                        case CollisionField::VEHICLE_TYPE_CODE_4:
                             collision.vehicle_type_code_4 = convert_string(field);
                             break;
-                        case 28:
+                        case CollisionField::VEHICLE_TYPE_CODE_5:
                             collision.vehicle_type_code_5 = convert_string(field);
                             break;
+                        case CollisionField::UNDEFINED:
                         default:
                             std::cerr << "Unknown field_index: " << field_index << std::endl;
                     }
