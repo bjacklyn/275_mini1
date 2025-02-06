@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 
+using namespace std::chrono;
 
 int main(int argc, char *argv[]) {
     if (argc != 2)
@@ -30,11 +31,19 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    std::vector<const Collision*> collisions = collision_manager.search();
+    auto startDate = year{2021}/month{9}/day{11};
+    auto endDate = year{2021}/month{12}/day{12};
+
+    std::vector<const Collision*> collisions = collision_manager.getAllCollisions();
+    std::vector<const Collision*> collisionsrange = collision_manager.getCollisionRange(startDate,endDate);
     std::cout << *collisions.at(0) << std::endl;
     std::cout << *collisions.at(1) << std::endl;
     std::cout << *collisions.at(2) << std::endl;
     std::cout << *collisions.at(3) << std::endl;
     std::cout << *collisions.at(4) << std::endl;
     std::cout << *collisions.at(5) << std::endl;
+    std::cout << " Collisions in Range: " << collisionsrange.size() << std::endl;
+    std::cout << *collisionsrange.at(0) << std::endl;
+    std::cout << *collisionsrange.at(1) << std::endl;
+    std::cout << *collisionsrange.at(2) << std::endl;
 }
