@@ -37,7 +37,7 @@ std::optional<std::chrono::year_month_day> convert_year_month_day_date(const std
 
     auto month_result = std::from_chars(field.data(), field.data() + first_slash, month);
     auto day_result = std::from_chars(field.data() + first_slash + 1, field.data() + second_slash, day);
-    auto year_result = std::from_chars(field.data() + second_slash + 1, field.data() + field.size(), year);
+    auto year_result = std::from_chars(field.data() + second_slash + 1, field.data() + field.size() + 1, year);
 
     if (month_result.ec != std::errc() || day_result.ec != std::errc() || year_result.ec != std::errc()) {
         std::cerr << "Error parsing date: " << std::quoted(field) << std::endl;
