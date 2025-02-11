@@ -15,8 +15,12 @@ public:
     const std::string& get_initialization_error();
     const std::vector<const Collision*> search(const Query& query);
 
+    friend class CollisionManagerTest;
+
 private:
-    std::string initialization_error;
-    std::vector<Collision> collisions;
+    CollisionManager(std::vector<Collision>& collisions);
+
+    std::string initialization_error_;
+    std::vector<Collision> collisions_;
 
 };

@@ -4,6 +4,14 @@ project(collision_parser)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+include(FetchContent)
+FetchContent_Declare(
+  googletest
+  URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+)
+
+FetchContent_MakeAvailable(googletest)
+
 # set(CMAKE_C_COMPILER /usr/local/Homebrew/bin/gcc-14)
 # set(CMAKE_CXX_COMPILER /usr/local/Homebrew/bin/g++-14)
 
@@ -25,6 +33,25 @@ elseif(WIN32)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libstdc++ -static-libgcc")
 endif()
 
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g3")
+
 
 add_executable(main collision.cpp collision_parser.cpp collision_manager.cpp main.cpp)
+
+
+enable_testing()
+
+add_executable(
+  collion_manager_test
+  collision.cpp
+  collision_parser.cpp
+  collision_manager.cpp
+  collision_manager_test.cpp
+)
+target_link_libraries(
+  collion_manager_test
+  GTest::gtest_main
+)
+
+include(GoogleTest)
+gtest_discover_tests(collion_manager_test)
