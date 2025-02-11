@@ -1,5 +1,7 @@
 #pragma once
 
+#include "query.hpp"
+
 #include <chrono>
 #include <iostream>
 #include <format>
@@ -38,7 +40,10 @@ struct Collision {
     std::optional<std::string> vehicle_type_code_4;
     std::optional<std::string> vehicle_type_code_5;
 
-    bool match() const;
+    bool match(const Query& query) const;
+
+private:
+    bool do_match(const Query& query) const;
 };
 
 std::ostream& operator<<(std::ostream& os, const Collision& collision);

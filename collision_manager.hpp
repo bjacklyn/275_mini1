@@ -1,6 +1,7 @@
 #pragma once
 
 #include "collision.hpp"
+#include "query.hpp"
 
 #include <string>
 
@@ -12,7 +13,7 @@ public:
 
     bool is_initialized();
     const std::string& get_initialization_error();
-    const std::vector<const Collision*> search();
+    const std::vector<const Collision*> search(const Query& query);
 
 private:
     std::string initialization_error;

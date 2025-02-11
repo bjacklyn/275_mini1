@@ -1,5 +1,6 @@
 #include "collision_manager.hpp"
 #include "collision_parser.hpp"
+#include "query.hpp"
 
 #include <string>
 
@@ -24,11 +25,11 @@ const std::string& CollisionManager::get_initialization_error() {
     return this->initialization_error;
 }
 
-const std::vector<const Collision*> CollisionManager::search() {
+const std::vector<const Collision*> CollisionManager::search(const Query& query) {
     std::vector<const Collision*> results;
 
     for (const Collision& collision : this->collisions) {
-        if (collision.match()) {
+        if (collision.match(query)) {
             results.push_back(&collision);
         }
     }
