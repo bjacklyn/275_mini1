@@ -39,7 +39,7 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(benchmark)
 
-add_library(collision_manager collision.cpp collision_parser.cpp collision_manager.cpp)
+add_library(collision_manager query.cpp collision.cpp collision_parser.cpp collision_manager.cpp)
 add_executable(main main.cpp)
 target_link_libraries(main collision_manager)
 
