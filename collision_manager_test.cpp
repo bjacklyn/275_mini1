@@ -8,6 +8,9 @@ namespace {
 
 class CollisionManagerTest : public ::testing::Test {
 protected:
+    CollisionManagerTest() :
+        collision_manager_m(CollisionManager("")) {}
+
     CollisionManager create_collision_manager(std::vector<Collision>& collisions) {
         return CollisionManager(collisions);
     }
@@ -15,6 +18,13 @@ protected:
     CollisionManager create_collision_manager_from_csv(const std::string& filename) {
         return CollisionManager(filename);
     }
+
+    void SetUp(){
+        std::string filename(kSubsetDataset);
+        collision_manager_m = create_collision_manager_from_csv(filename);
+    }
+
+    CollisionManager collision_manager_m;
 };
 
 TEST_F(CollisionManagerTest, ValidQueriesDoNotThrowExceptions) {
@@ -284,9 +294,6 @@ TEST_F(CollisionManagerTest, MatchLessThanDate) {
 
 TEST_F(CollisionManagerTest, CSV_Query_MatchLessThanDate) {
 
-    std::string filename(kSubsetDataset);
-    CollisionManager collision_manager = create_collision_manager_from_csv(filename);
-
     std::chrono::year_month_day date1{
         std::chrono::year{2022},
         std::chrono::month{3},
@@ -294,7 +301,7 @@ TEST_F(CollisionManagerTest, CSV_Query_MatchLessThanDate) {
     };
 
     Query query = Query::create("crash_date", QueryType::LESS_THAN, date1);
-    std::vector<const Collision*> results = collision_manager.search(query);
+    std::vector<const Collision*> results = collision_manager_m.search(query);
 
     EXPECT_GT(results.size(), 0) << "Search should return at least one result";
 
@@ -308,9 +315,6 @@ TEST_F(CollisionManagerTest, CSV_Query_MatchLessThanDate) {
 
 TEST_F(CollisionManagerTest, CSV_Query_MatchGreaterThanDate) {
 
-    std::string filename(kSubsetDataset);
-    CollisionManager collision_manager = create_collision_manager_from_csv(filename);
-
     std::chrono::year_month_day date1{
         std::chrono::year{2021},
         std::chrono::month{9},
@@ -318,7 +322,7 @@ TEST_F(CollisionManagerTest, CSV_Query_MatchGreaterThanDate) {
     };
 
     Query query = Query::create("crash_date", QueryType::GREATER_THAN, date1);
-    std::vector<const Collision*> results = collision_manager.search(query);
+    std::vector<const Collision*> results = collision_manager_m.search(query);
 
     EXPECT_GT(results.size(), 0) << "Search should return at least one result";
 
@@ -332,9 +336,6 @@ TEST_F(CollisionManagerTest, CSV_Query_MatchGreaterThanDate) {
 
 TEST_F(CollisionManagerTest, CSV_Query_MatchEqualsDate) {
 
-    std::string filename(kSubsetDataset);
-    CollisionManager collision_manager = create_collision_manager_from_csv(filename);
-
     std::chrono::year_month_day date1{
         std::chrono::year{2021},
         std::chrono::month{9},
@@ -342,7 +343,7 @@ TEST_F(CollisionManagerTest, CSV_Query_MatchEqualsDate) {
     };
 
     Query query = Query::create("crash_date", QueryType::EQUALS, date1);
-    std::vector<const Collision*> results = collision_manager.search(query);
+    std::vector<const Collision*> results = collision_manager_m.search(query);
 
     EXPECT_GT(results.size(), 0) << "Search should return at least one result";
 
@@ -356,15 +357,12 @@ TEST_F(CollisionManagerTest, CSV_Query_MatchEqualsDate) {
 
 TEST_F(CollisionManagerTest, CSV_Query_MatchEqualsTime) {
 
-    std::string filename(kSubsetDataset);
-    CollisionManager collision_manager = create_collision_manager_from_csv(filename);
-
     std::chrono::hh_mm_ss<std::chrono::minutes> time1{
         std::chrono::hours{9} + std::chrono::minutes{35}
     };
 
     Query query = Query::create("crash_time", QueryType::EQUALS, time1);
-    std::vector<const Collision*> results = collision_manager.search(query);
+    std::vector<const Collision*> results = collision_manager_m.search(query);
 
     EXPECT_GT(results.size(), 0) << "Search should return at least one result";
 
@@ -378,15 +376,12 @@ TEST_F(CollisionManagerTest, CSV_Query_MatchEqualsTime) {
 
 TEST_F(CollisionManagerTest, CSV_Query_MatchGreaterThanTime) {
 
-    std::string filename(kSubsetDataset);
-    CollisionManager collision_manager = create_collision_manager_from_csv(filename);
-
     std::chrono::hh_mm_ss<std::chrono::minutes> time1{
         std::chrono::hours{9} + std::chrono::minutes{35}
     };
 
     Query query = Query::create("crash_time", QueryType::GREATER_THAN, time1);
-    std::vector<const Collision*> results = collision_manager.search(query);
+    std::vector<const Collision*> results = collision_manager_m.search(query);
 
     EXPECT_GT(results.size(), 0) << "Search should return at least one result";
 
@@ -401,15 +396,12 @@ TEST_F(CollisionManagerTest, CSV_Query_MatchGreaterThanTime) {
 
 TEST_F(CollisionManagerTest, CSV_Query_MatchLessThanTime) {
 
-    std::string filename(kSubsetDataset);
-    CollisionManager collision_manager = create_collision_manager_from_csv(filename);
-
     std::chrono::hh_mm_ss<std::chrono::minutes> time1{
         std::chrono::hours{9} + std::chrono::minutes{35}
     };
 
     Query query = Query::create("crash_time", QueryType::LESS_THAN, time1);
-    std::vector<const Collision*> results = collision_manager.search(query);
+    std::vector<const Collision*> results = collision_manager_m.search(query);
 
     EXPECT_GT(results.size(), 0) << "Search should return at least one result";
 
@@ -419,4 +411,42 @@ TEST_F(CollisionManagerTest, CSV_Query_MatchLessThanTime) {
     }
 
     std::cout << "Found " << results.size() << " collisions before " << time1 << std::endl;
+}
+
+TEST_F(CollisionManagerTest, CSV_Query_MatchEqualLatitude) {
+
+    float latitude = 40.667202f;
+
+    Query query = Query::create("latitude", QueryType::EQUALS, latitude);
+    std::vector<const Collision*> results = collision_manager_m.search(query);
+
+    EXPECT_GT(results.size(), 0) << "Search should return at least one result";
+
+    for (const auto *collision : results)
+    {
+       EXPECT_TRUE(collision->latitude.has_value());
+       EXPECT_NEAR(collision->latitude.value(), latitude,0.001f)
+            << "Latitude values should be equal within floating-point precision";
+    }
+
+    std::cout << "Found " << results.size() << " collisions at the latitude " << latitude << std::endl;
+}
+
+TEST_F(CollisionManagerTest, CSV_Query_MatchGreaterLatitude) {
+
+    float latitude = 40.667202f;
+
+    Query query = Query::create("latitude", QueryType::EQUALS, latitude);
+    std::vector<const Collision*> results = collision_manager_m.search(query);
+
+    EXPECT_GT(results.size(), 0) << "Search should return at least one result";
+
+    for (const auto *collision : results)
+    {
+       EXPECT_TRUE(collision->latitude.has_value());
+       EXPECT_NEAR(collision->latitude.value(), latitude,0.001f)
+            << "Latitude values should be equal within floating-point precision";
+    }
+
+    std::cout << "Found " << results.size() << " collisions at the latitude " << latitude << std::endl;
 }
