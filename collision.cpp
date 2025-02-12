@@ -27,6 +27,9 @@ bool match_size_t(const FieldQuery& query, const std::optional<std::size_t>& val
             return *value < query_value;
         case QueryType::GREATER_THAN:
             return *value > query_value;
+        case QueryType::CONTAINS:
+        default:
+            throw std::runtime_error("Invalid QueryType for std::size_t");
     }
 
     return false;
@@ -52,6 +55,9 @@ bool match_float(const FieldQuery& query, const std::optional<float>& value) {
             return *value < query_value;
         case QueryType::GREATER_THAN:
             return *value > query_value;
+        case QueryType::CONTAINS:
+        default:
+            throw std::runtime_error("Invalid QueryType for float");
     }
 
     return false;
@@ -82,6 +88,10 @@ bool match_string(const FieldQuery& query, const std::optional<std::string>& val
             return first_value == second_value;
         case QueryType::CONTAINS:
             return first_value.find(second_value) != std::string::npos;
+        case QueryType::LESS_THAN:
+        case QueryType::GREATER_THAN:
+        default:
+            throw std::runtime_error("Invalid QueryType for std::string");
     }
 
     return false;
@@ -107,6 +117,9 @@ bool match_date(const FieldQuery& query, const std::optional<std::chrono::year_m
             return *value < query_value;
         case QueryType::GREATER_THAN:
             return *value > query_value;
+        case QueryType::CONTAINS:
+        default:
+            throw std::runtime_error("Invalid QueryType for std::chrono::year_month_day");
     }
 
     return false;
@@ -132,6 +145,9 @@ bool match_time(const FieldQuery& query, const std::optional<std::chrono::hh_mm_
             return (*value).to_duration() < query_value.to_duration();
         case QueryType::GREATER_THAN:
             return (*value).to_duration() > query_value.to_duration();
+        case QueryType::CONTAINS:
+        default:
+            throw std::runtime_error("Invalid QueryType for std::chrono::hh_mm_ss");
     }
 
     return false;
