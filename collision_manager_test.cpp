@@ -2,10 +2,18 @@
 #include <chrono>
 #include <gtest/gtest.h>
 
+namespace {
+    const char* const kSubsetDataset = "../MotorVehicleCollisionData_subset.csv";
+}
+
 class CollisionManagerTest : public ::testing::Test {
 protected:
     CollisionManager create_collision_manager(std::vector<Collision>& collisions) {
         return CollisionManager(collisions);
+    }
+
+    CollisionManager create_collision_manager_from_csv(const std::string& filename) {
+        return CollisionManager(filename);
     }
 };
 
@@ -206,4 +214,143 @@ TEST_F(CollisionManagerTest, MatchLessThanDate) {
     Query query = Query::create("crash_date", QueryType::LESS_THAN, date1);
     std::vector<const Collision*> results = collision_manager.search(query);
     EXPECT_EQ(results.size(), 1);
+}
+
+TEST_F(CollisionManagerTest, CSV_Query_MatchLessThanDate) {
+
+    std::string filename(kSubsetDataset);
+    CollisionManager collision_manager = create_collision_manager_from_csv(filename);
+
+    std::chrono::year_month_day date1{
+        std::chrono::year{2022},
+        std::chrono::month{3},
+        std::chrono::day{26}
+    };
+
+    Query query = Query::create("crash_date", QueryType::LESS_THAN, date1);
+    std::vector<const Collision*> results = collision_manager.search(query);
+
+    EXPECT_GT(results.size(), 0) << "Search should return at least one result";
+
+    for (const auto* collision : results) {
+        EXPECT_TRUE(collision->crash_date < date1)
+            << "Each result should have date less than " << date1;
+    }
+
+    std::cout << "Found " << results.size() << " collisions before " << date1 << std::endl;
+}
+
+TEST_F(CollisionManagerTest, CSV_Query_MatchGreaterThanDate) {
+
+    std::string filename(kSubsetDataset);
+    CollisionManager collision_manager = create_collision_manager_from_csv(filename);
+
+    std::chrono::year_month_day date1{
+        std::chrono::year{2021},
+        std::chrono::month{9},
+        std::chrono::day{11}
+    };
+
+    Query query = Query::create("crash_date", QueryType::GREATER_THAN, date1);
+    std::vector<const Collision*> results = collision_manager.search(query);
+
+    EXPECT_GT(results.size(), 0) << "Search should return at least one result";
+
+    for (const auto* collision : results) {
+        EXPECT_TRUE(collision->crash_date > date1)
+            << "Each result should have date greater than " << date1;
+    }
+
+    std::cout << "Found " << results.size() << " collisions after " << date1 << std::endl;
+}
+
+TEST_F(CollisionManagerTest, CSV_Query_MatchEqualsDate) {
+
+    std::string filename(kSubsetDataset);
+    CollisionManager collision_manager = create_collision_manager_from_csv(filename);
+
+    std::chrono::year_month_day date1{
+        std::chrono::year{2021},
+        std::chrono::month{9},
+        std::chrono::day{11}
+    };
+
+    Query query = Query::create("crash_date", QueryType::EQUALS, date1);
+    std::vector<const Collision*> results = collision_manager.search(query);
+
+    EXPECT_GT(results.size(), 0) << "Search should return at least one result";
+
+    for (const auto* collision : results) {
+        EXPECT_TRUE(collision->crash_date == date1)
+            << "Each result should have date greater than " << date1;
+    }
+
+    std::cout << "Found " << results.size() << " collisions on " << date1 << std::endl;
+}
+
+TEST_F(CollisionManagerTest, CSV_Query_MatchEqualsTime) {
+
+    std::string filename(kSubsetDataset);
+    CollisionManager collision_manager = create_collision_manager_from_csv(filename);
+
+    std::chrono::hh_mm_ss<std::chrono::minutes> time1{
+        std::chrono::hours{9} + std::chrono::minutes{35}
+    };
+
+    Query query = Query::create("crash_time", QueryType::EQUALS, time1);
+    std::vector<const Collision*> results = collision_manager.search(query);
+
+    EXPECT_GT(results.size(), 0) << "Search should return at least one result";
+
+    for (const auto* collision : results) {
+        EXPECT_TRUE(collision->crash_time.has_value() && collision->crash_time.value().to_duration() == time1.to_duration())
+            << "Each result should have time equal to " << time1;
+    }
+
+    std::cout << "Found " << results.size() << " collisions on " << time1 << std::endl;
+}
+
+TEST_F(CollisionManagerTest, CSV_Query_MatchGreaterThanTime) {
+
+    std::string filename(kSubsetDataset);
+    CollisionManager collision_manager = create_collision_manager_from_csv(filename);
+
+    std::chrono::hh_mm_ss<std::chrono::minutes> time1{
+        std::chrono::hours{9} + std::chrono::minutes{35}
+    };
+
+    Query query = Query::create("crash_time", QueryType::GREATER_THAN, time1);
+    std::vector<const Collision*> results = collision_manager.search(query);
+
+    EXPECT_GT(results.size(), 0) << "Search should return at least one result";
+
+    for (const auto* collision : results) {
+        EXPECT_TRUE(collision->crash_time.has_value() && collision->crash_time.value().to_duration() > time1.to_duration())
+            << "Each result should have time equal to " << time1;
+    }
+
+    std::cout << "Found " << results.size() << " collisions after " << time1 << std::endl;
+}
+
+
+TEST_F(CollisionManagerTest, CSV_Query_MatchLessThanTime) {
+
+    std::string filename(kSubsetDataset);
+    CollisionManager collision_manager = create_collision_manager_from_csv(filename);
+
+    std::chrono::hh_mm_ss<std::chrono::minutes> time1{
+        std::chrono::hours{9} + std::chrono::minutes{35}
+    };
+
+    Query query = Query::create("crash_time", QueryType::LESS_THAN, time1);
+    std::vector<const Collision*> results = collision_manager.search(query);
+
+    EXPECT_GT(results.size(), 0) << "Search should return at least one result";
+
+    for (const auto* collision : results) {
+        EXPECT_TRUE(collision->crash_time.has_value() && collision->crash_time.value().to_duration() < time1.to_duration())
+            << "Each result should have time equal to " << time1;
+    }
+
+    std::cout << "Found " << results.size() << " collisions before " << time1 << std::endl;
 }
