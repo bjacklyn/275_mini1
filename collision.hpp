@@ -43,7 +43,7 @@ struct Collision {
     bool match(const Query& query) const;
 
 private:
-    bool do_match(const Query& query) const;
+    bool match_field(const FieldQuery& query) const;
 };
 
 std::ostream& operator<<(std::ostream& os, const Collision& collision);

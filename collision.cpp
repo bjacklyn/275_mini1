@@ -7,7 +7,7 @@
 #include <optional>
 #include <string>
 
-bool match_size_t(const Query& query, const std::optional<std::size_t>& value) {
+bool match_size_t(const FieldQuery& query, const std::optional<std::size_t>& value) {
     const QueryType& type = query.get_type();
 
     if (type == QueryType::HAS_VALUE) {
@@ -32,7 +32,7 @@ bool match_size_t(const Query& query, const std::optional<std::size_t>& value) {
     return false;
 }
 
-bool match_float(const Query& query, const std::optional<float>& value) {
+bool match_float(const FieldQuery& query, const std::optional<float>& value) {
     const QueryType& type = query.get_type();
 
     if (type == QueryType::HAS_VALUE) {
@@ -57,7 +57,7 @@ bool match_float(const Query& query, const std::optional<float>& value) {
     return false;
 }
 
-bool match_string(const Query& query, const std::optional<std::string>& value) {
+bool match_string(const FieldQuery& query, const std::optional<std::string>& value) {
     const QueryType& type = query.get_type();
 
     if (type == QueryType::HAS_VALUE) {
@@ -87,7 +87,7 @@ bool match_string(const Query& query, const std::optional<std::string>& value) {
     return false;
 }
 
-bool match_date(const Query& query, const std::optional<std::chrono::year_month_day>& value) {
+bool match_date(const FieldQuery& query, const std::optional<std::chrono::year_month_day>& value) {
     const QueryType& type = query.get_type();
 
     if (type == QueryType::HAS_VALUE) {
@@ -112,7 +112,7 @@ bool match_date(const Query& query, const std::optional<std::chrono::year_month_
     return false;
 }
 
-bool match_time(const Query& query, const std::optional<std::chrono::hh_mm_ss<std::chrono::minutes>>& value) {
+bool match_time(const FieldQuery& query, const std::optional<std::chrono::hh_mm_ss<std::chrono::minutes>>& value) {
     const QueryType& type = query.get_type();
 
     if (type == QueryType::HAS_VALUE) {
@@ -137,7 +137,7 @@ bool match_time(const Query& query, const std::optional<std::chrono::hh_mm_ss<st
     return false;
 }
 
-bool Collision::do_match(const Query& query) const {
+bool Collision::match_field(const FieldQuery& query) const {
     const std::string& name = query.get_name();
 
     if (name == "crash_date") {
@@ -204,8 +204,17 @@ bool Collision::do_match(const Query& query) const {
 }
 
 bool Collision::match(const Query& query) const {
-    bool match = do_match(query);
-    return query.invert_match() ? !match : match;
+    const std::vector<FieldQuery>& field_queries = query.get();
+
+    for (const FieldQuery& field_query : field_queries) {
+        bool match = match_field(field_query);
+        match = field_query.invert_match() ? !match : match;
+        if (!match) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 std::ostream& operator<<(std::ostream& os, const Collision& collision) {
