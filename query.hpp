@@ -57,24 +57,11 @@ private:
 
     std::vector<FieldQuery> queries;
 
-public:
-    const std::vector<FieldQuery>& get() const {
-        return queries;
-    }
-
-    static Query create(const std::string_view& name, const QueryType& type, const Value value) {
-        return create(name, Qualifier::NONE, type, value, Qualifier::NONE);
-    }
-
-    static Query create(const std::string_view& name, const Qualifier& not_qualifier, const QueryType& type, const Value value) {
-        return create(name, not_qualifier, type, value, Qualifier::NONE);
-    }
-
-    static Query create(const std::string_view& name, const QueryType& type, const Value value, const Qualifier& case_insensitive_qualifier) {
-        return create(name, Qualifier::NONE, type, value, case_insensitive_qualifier);
-    }
-
-    static Query create(const std::string_view& name, const Qualifier& not_qualifier, const QueryType& type, const Value value, const Qualifier& case_insensitive_qualifier) {
+    static FieldQuery create_field_query(const std::string_view& name,
+                                         const Qualifier& not_qualifier,
+                                         const QueryType& type,
+                                         const Value value,
+                                         const Qualifier& case_insensitive_qualifier) {
         std::visit([&name](auto&& val) {
             using T = std::decay_t<decltype(val)>;
 
@@ -101,6 +88,56 @@ public:
             }
         }, value);
 
-        return Query(FieldQuery(std::string(name), type, value, not_qualifier == Qualifier::NOT, case_insensitive_qualifier == Qualifier::CASE_INSENSITIVE));
+        return FieldQuery(std::string(name),
+                          type,
+                          value,
+                          not_qualifier == Qualifier::NOT,
+                          case_insensitive_qualifier == Qualifier::CASE_INSENSITIVE);
+    }
+
+public:
+    const std::vector<FieldQuery>& get() const {
+        return queries;
+    }
+
+    Query& add(const std::string_view& name, const QueryType& type, const Value value) {
+        return add(name, Qualifier::NONE, type, value, Qualifier::NONE);
+    }
+
+    Query& add(const std::string_view& name, const Qualifier& not_qualifier, const QueryType& type, const Value value) {
+        return add(name, not_qualifier, type, value, Qualifier::NONE);
+    }
+
+    Query& add(const std::string_view& name, const QueryType& type, const Value value, const Qualifier& case_insensitive_qualifier) {
+        return add(name, Qualifier::NONE, type, value, case_insensitive_qualifier);
+    }
+
+    Query& add(const std::string_view& name, const Qualifier& not_qualifier, const QueryType& type, const Value value, const Qualifier& case_insensitive_qualifier) {
+        queries.push_back(create_field_query(std::string(name),
+                                            not_qualifier,
+                                            type,
+                                            value,
+                                            case_insensitive_qualifier));
+        return *this;
+    }
+
+    static Query create(const std::string_view& name, const QueryType& type, const Value value) {
+        return create(name, Qualifier::NONE, type, value, Qualifier::NONE);
+    }
+
+    static Query create(const std::string_view& name, const Qualifier& not_qualifier, const QueryType& type, const Value value) {
+        return create(name, not_qualifier, type, value, Qualifier::NONE);
+    }
+
+    static Query create(const std::string_view& name, const QueryType& type, const Value value, const Qualifier& case_insensitive_qualifier) {
+        return create(name, Qualifier::NONE, type, value, case_insensitive_qualifier);
+    }
+
+    static Query create(const std::string_view& name, const Qualifier& not_qualifier, const QueryType& type, const Value value, const Qualifier& case_insensitive_qualifier) {
+        return Query(create_field_query(std::string(name),
+                                        not_qualifier,
+                                        type,
+                                        value,
+                                        case_insensitive_qualifier));
     }
 };
