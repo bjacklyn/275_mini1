@@ -17,6 +17,72 @@ protected:
     }
 };
 
+TEST_F(CollisionManagerTest, ValidQueriesDoNotThrowExceptions) {
+    // String field and parameter is a string
+    EXPECT_NO_THROW({
+        Query::create("borough", QueryType::EQUALS, "Hello world");
+    });
+
+    // Size_t field and parameter is a size_t
+    EXPECT_NO_THROW({
+        Query::create("collision_id", QueryType::EQUALS, 100ULL);
+    });
+
+    // Date field and parameter is a date
+    EXPECT_NO_THROW({
+        Query::create("crash_date", QueryType::EQUALS, std::chrono::year_month_day{
+            std::chrono::year{2021},
+            std::chrono::month{9},
+            std::chrono::day{11}}
+        );
+    });
+
+    // Time field and parameter is a time
+    EXPECT_NO_THROW({
+        Query::create("crash_time", QueryType::EQUALS, std::chrono::hh_mm_ss<std::chrono::minutes>{
+            std::chrono::hours{9} + std::chrono::minutes{35}}
+        );
+    });
+
+    // Float field and parameter is a float
+    EXPECT_NO_THROW({
+        Query::create("latitude", QueryType::EQUALS, 1.0f);
+    });
+}
+
+TEST_F(CollisionManagerTest, InvalidQueriesThrowExceptions) {
+    // String field but parameter is a float
+    EXPECT_THROW({
+        Query::create("borough", QueryType::EQUALS, 1.0f);
+    }, std::invalid_argument);
+
+    // Size_t field but parameter is a date
+    EXPECT_THROW({
+        Query::create("collision_id", QueryType::EQUALS, std::chrono::year_month_day{
+            std::chrono::year{2021},
+            std::chrono::month{9},
+            std::chrono::day{11}}
+        );
+    }, std::invalid_argument);
+
+    // Date field but parameter is a time
+    EXPECT_THROW({
+        Query::create("crash_date", QueryType::EQUALS, std::chrono::hh_mm_ss<std::chrono::minutes>{
+            std::chrono::hours{9} + std::chrono::minutes{35}}
+        );
+    }, std::invalid_argument);
+
+    // Time field but parameter is a string
+    EXPECT_THROW({
+        Query::create("crash_time", QueryType::EQUALS, "Hello world");
+    }, std::invalid_argument);
+
+    // Float field but parameter is a size_t
+    EXPECT_THROW({
+        Query::create("latitude", QueryType::EQUALS, 100ULL);
+    }, std::invalid_argument);
+}
+
 TEST_F(CollisionManagerTest, MatchEmpty) {
     std::vector<Collision> collisions;
     CollisionManager collision_manager = create_collision_manager(collisions);
