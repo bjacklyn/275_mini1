@@ -20,11 +20,15 @@ protected:
     }
 
     void SetUp(){
-        std::string filename(kSubsetDataset);
-        collision_manager_m = create_collision_manager_from_csv(filename);
+        if(!is_initialized_m) {
+            std::string filename(kSubsetDataset);
+            collision_manager_m = create_collision_manager_from_csv(filename);
+            is_initialized_m = true;
+        }
     }
 
     CollisionManager collision_manager_m;
+    bool is_initialized_m = false;
 };
 
 TEST_F(CollisionManagerTest, ValidQueriesDoNotThrowExceptions) {
@@ -216,8 +220,6 @@ TEST_F(CollisionManagerTest, MatchCaseInsensitive) {
     EXPECT_EQ(results3.size(), 1);
     EXPECT_EQ(results3[0]->borough, "BROOKLYN");
 
-
-   // Query query = Query::create(...).and(...).and(...)
 }
 
 
@@ -436,7 +438,7 @@ TEST_F(CollisionManagerTest, CSV_Query_MatchGreaterLatitude) {
 
     float latitude = 40.667202f;
 
-    Query query = Query::create("latitude", QueryType::EQUALS, latitude);
+    Query query = Query::create("latitude", QueryType::GREATER_THAN, latitude);
     std::vector<const Collision*> results = collision_manager_m.search(query);
 
     EXPECT_GT(results.size(), 0) << "Search should return at least one result";
@@ -444,9 +446,26 @@ TEST_F(CollisionManagerTest, CSV_Query_MatchGreaterLatitude) {
     for (const auto *collision : results)
     {
        EXPECT_TRUE(collision->latitude.has_value());
-       EXPECT_NEAR(collision->latitude.value(), latitude,0.001f)
+       EXPECT_GT(collision->latitude.value(), latitude)
             << "Latitude values should be equal within floating-point precision";
     }
 
     std::cout << "Found " << results.size() << " collisions at the latitude " << latitude << std::endl;
+}
+
+TEST_F(CollisionManagerTest, CSV_Query_MatchEqualsZipcode) {
+
+    size_t zip_code = 11208;
+
+    Query query = Query::create("zip_code", QueryType::EQUALS, zip_code);
+    std::vector<const Collision*> results = collision_manager_m.search(query);
+
+    EXPECT_GT(results.size(), 0) << "Search should return at least one result";
+
+    for (const auto* collision : results) {
+        EXPECT_TRUE(collision->zip_code == zip_code)
+            << "Each result should have zip_code equal to " << zip_code;
+    }
+
+    std::cout << "Found " << results.size() << " collisions on " << zip_code << std::endl;
 }
