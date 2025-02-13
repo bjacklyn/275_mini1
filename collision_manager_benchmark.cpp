@@ -12,7 +12,7 @@ public:
     void SetUp(const ::benchmark::State& state)
     {
         if (collision_manager.get() == nullptr) {
-            collision_manager = std::make_unique<CollisionManager>(std::string("../Motor_Vehicle_Collisions_-_Crashes_20250123.csv"));
+            collision_manager = std::make_unique<CollisionManager>(std::string("/home/suriya-018231499/cpp_projects/parser_data/Motor_Vehicle_Collisions_-_Crashes_20250204.csv"));
         }
     }
 };
@@ -53,9 +53,22 @@ BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchSingleSizeTFieldSomeMatches)
     }
 }
 
+
+BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchAllFields)(benchmark::State& state) {
+    
+    Query query = Query::create("zip_code", QueryType::EQUALS, 11208ULL).add("borough", QueryType::EQUALS, "BROOKLYN");
+    
+    for (auto _ : state) {
+        std::vector<const Collision*> results = collision_manager->search(query);
+        benchmark::DoNotOptimize(results);
+    }
+}
+
+
 BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchSingleStringFieldNoMatches)->Iterations(50);
 BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchSingleStringFieldSomeMatches)->Iterations(50);
 BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchSingleSizeTFieldNoMatches)->Iterations(50);
 BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchSingleSizeTFieldSomeMatches)->Iterations(50);
+BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchAllFields)->Iterations(50);
 
 BENCHMARK_MAIN();
