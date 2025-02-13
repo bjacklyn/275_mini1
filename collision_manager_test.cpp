@@ -450,7 +450,26 @@ TEST_F(CollisionManagerTest, CSV_Query_MatchGreaterLatitude) {
             << "Latitude values should be equal within floating-point precision";
     }
 
-    std::cout << "Found " << results.size() << " collisions at the latitude " << latitude << std::endl;
+    std::cout << "Found " << results.size() << " collisions above the latitude " << latitude << std::endl;
+}
+
+TEST_F(CollisionManagerTest, CSV_Query_MatchLesserThanLatitude) {
+
+    float latitude = 40.667202f;
+
+    Query query = Query::create("latitude", QueryType::LESS_THAN, latitude);
+    std::vector<const Collision*> results = collision_manager_m.search(query);
+
+    EXPECT_GT(results.size(), 0) << "Search should return at least one result";
+
+    for (const auto *collision : results)
+    {
+       EXPECT_TRUE(collision->latitude.has_value());
+       EXPECT_LT(collision->latitude.value(), latitude)
+            << "Latitude values should be equal within floating-point precision";
+    }
+
+    std::cout << "Found " << results.size() << " collisions below the latitude " << latitude << std::endl;
 }
 
 TEST_F(CollisionManagerTest, CSV_Query_MatchEqualsZipcode) {
@@ -468,4 +487,91 @@ TEST_F(CollisionManagerTest, CSV_Query_MatchEqualsZipcode) {
     }
 
     std::cout << "Found " << results.size() << " collisions on " << zip_code << std::endl;
+}
+
+TEST_F(CollisionManagerTest, CompoundQuery_Match_EqualsBorough_and_GreaterThanTime) {
+
+    std::string borough = "BROOKLYN";
+    std::chrono::hh_mm_ss<std::chrono::minutes> crash_time{
+        std::chrono::hours{9} + std::chrono::minutes{35}
+    };
+
+    Query query1 = Query::create("borough", QueryType::EQUALS, borough).add("crash_time", QueryType::GREATER_THAN, crash_time);
+
+    std::vector<const Collision*> results = collision_manager_m.search(query1);
+
+    EXPECT_GT(results.size(), 0) << "Search should return at least one result";
+
+    for (const auto* collision : results) {
+        EXPECT_TRUE(collision->borough == borough && collision->crash_time.has_value() && collision->crash_time.value().to_duration() > crash_time.to_duration())
+            << "Each result should have borough equal to " << borough << " and " << "crash time greater than " << crash_time;
+    }
+
+    std::cout << "Found " << results.size() << " collisions at " << borough << " after time " << crash_time << std::endl;
+
+}
+
+TEST_F(CollisionManagerTest, CompoundQuery_Match_EqualsBorough_and_LesserThanTime) {
+
+    std::string borough = "BROOKLYN";
+    std::chrono::hh_mm_ss<std::chrono::minutes> crash_time{
+        std::chrono::hours{9} + std::chrono::minutes{35}
+    };
+
+    Query query1 = Query::create("borough", QueryType::EQUALS, borough).add("crash_time", QueryType::LESS_THAN, crash_time);
+
+    std::vector<const Collision*> results = collision_manager_m.search(query1);
+
+    EXPECT_GT(results.size(), 0) << "Search should return at least one result";
+
+    for (const auto* collision : results) {
+        EXPECT_TRUE(collision->borough == borough && collision->crash_time.has_value() && collision->crash_time.value().to_duration() < crash_time.to_duration())
+            << "Each result should have borough equal to " << borough << " and " << "crash time lesser than " << crash_time;
+    }
+
+    std::cout << "Found " << results.size() << " collisions at " << borough << " before time " << crash_time << std::endl;
+
+}
+
+TEST_F(CollisionManagerTest, CompoundQuery_Match_EqualsZipCode_and_GreaterThanTime) {
+
+    size_t zip_code = 11208;
+    std::chrono::hh_mm_ss<std::chrono::minutes> crash_time{
+        std::chrono::hours{9} + std::chrono::minutes{35}
+    };
+
+    Query query1 = Query::create("zip_code", QueryType::EQUALS, zip_code).add("crash_time", QueryType::GREATER_THAN, crash_time);
+
+    std::vector<const Collision*> results = collision_manager_m.search(query1);
+
+    EXPECT_GT(results.size(), 0) << "Search should return at least one result";
+
+    for (const auto* collision : results) {
+        EXPECT_TRUE(collision->zip_code == zip_code && collision->crash_time.has_value() && collision->crash_time.value().to_duration() > crash_time.to_duration())
+            << "Each result should have zip_code equal to " << zip_code << " and " << "crash time greater than " << crash_time;
+    }
+
+    std::cout << "Found " << results.size() << " collisions at " << zip_code << " before time " << crash_time << std::endl;
+}
+
+
+TEST_F(CollisionManagerTest, CompoundQuery_Match_EqualsZipCode_and_LesserThanTime) {
+
+    size_t zip_code = 11434;
+    std::chrono::hh_mm_ss<std::chrono::minutes> crash_time{
+        std::chrono::hours{16} + std::chrono::minutes{50}
+    };
+
+    Query query1 = Query::create("zip_code", QueryType::EQUALS, zip_code).add("crash_time", QueryType::LESS_THAN, crash_time);
+
+    std::vector<const Collision*> results = collision_manager_m.search(query1);
+
+    EXPECT_GT(results.size(), 0) << "Search should return at least one result";
+
+    for (const auto* collision : results) {
+        EXPECT_TRUE(collision->zip_code == zip_code && collision->crash_time.has_value() && collision->crash_time.value().to_duration() < crash_time.to_duration())
+            << "Each result should have zip_code equal to " << zip_code << " and " << "crash time greater than " << crash_time;
+    }
+
+    std::cout << "Found " << results.size() << " collisions at " << zip_code << " before time " << crash_time << std::endl;
 }
