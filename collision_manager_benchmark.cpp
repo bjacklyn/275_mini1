@@ -53,9 +53,75 @@ BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchSingleSizeTFieldSomeMatches)
     }
 }
 
+BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchLatitudeSomeMatches)(benchmark::State& state) {
+    float latitude = 40.63165f;
+    Query query = Query::create("latitude", QueryType::EQUALS, latitude);
+
+    for(auto _ : state) {
+        std::vector<const Collision*> results = collision_manager->search(query);
+        benchmark::DoNotOptimize(results);
+    }
+}
+
+BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchLesserThanLatitudeSomeMatches)(benchmark::State& state) {
+    float latitude = 40.63165f;
+    Query query = Query::create("latitude", QueryType::LESS_THAN, latitude);
+
+    for(auto _ : state) {
+        std::vector<const Collision*> results = collision_manager->search(query);
+        benchmark::DoNotOptimize(results);
+    }
+}
+
+BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchGreaterThanLatitudeSomeMatches)(benchmark::State& state) {
+    float latitude = 40.63165f;
+    Query query = Query::create("latitude", QueryType::GREATER_THAN, latitude);
+
+    for(auto _ : state) {
+        std::vector<const Collision*> results = collision_manager->search(query);
+        benchmark::DoNotOptimize(results);
+    }
+}
+
+BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchLongitudeSomeMatches)(benchmark::State& state) {
+    float longitude = -73.88505f;
+    Query query = Query::create("latitude", QueryType::EQUALS, longitude);
+
+    for(auto _ : state) {
+        std::vector<const Collision*> results = collision_manager->search(query);
+        benchmark::DoNotOptimize(results);
+    }
+}
+
+BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchLesserThanLongitudeSomeMatches)(benchmark::State& state) {
+    float longitude = -73.88505f;
+    Query query = Query::create("latitude", QueryType::LESS_THAN, longitude);
+
+    for(auto _ : state) {
+        std::vector<const Collision*> results = collision_manager->search(query);
+        benchmark::DoNotOptimize(results);
+    }
+}
+
+BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchGreaterThanLongitudeSomeMatches)(benchmark::State& state) {
+    float longitude = -73.88505f;
+    Query query = Query::create("latitude", QueryType::GREATER_THAN, longitude);
+
+    for(auto _ : state) {
+        std::vector<const Collision*> results = collision_manager->search(query);
+        benchmark::DoNotOptimize(results);
+    }
+}
+
 BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchSingleStringFieldNoMatches)->Iterations(50);
 BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchSingleStringFieldSomeMatches)->Iterations(50);
 BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchSingleSizeTFieldNoMatches)->Iterations(50);
 BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchSingleSizeTFieldSomeMatches)->Iterations(50);
+BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchLatitudeSomeMatches)->Iterations(50);
+BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchLongitudeSomeMatches)->Iterations(50);
+BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchLesserThanLatitudeSomeMatches)->Iterations(50);
+BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchGreaterThanLatitudeSomeMatches)->Iterations(50);
+BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchLesserThanLongitudeSomeMatches)->Iterations(50);
+BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchGreaterThanLongitudeSomeMatches)->Iterations(50);
 
 BENCHMARK_MAIN();
