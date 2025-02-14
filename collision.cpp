@@ -7,7 +7,8 @@
 #include <optional>
 #include <string>
 
-bool match_size_t(const FieldQuery& query, const std::optional<std::size_t>& value) {
+template<class T>
+bool do_match(const FieldQuery& query, const std::optional<T>& value) {
     const QueryType& type = query.get_type();
 
     if (type == QueryType::HAS_VALUE) {
@@ -18,9 +19,10 @@ bool match_size_t(const FieldQuery& query, const std::optional<std::size_t>& val
         return false;
     }
 
-    const std::size_t& query_value = std::get<std::size_t>(query.get_value());
+    const T& query_value = std::get<T>(query.get_value());
 
-    switch(type) {
+    if constexpr (std::is_same_v<float, T> || std::is_same_v<std::size_t, T> || std::is_same_v<std::chrono::year_month_day, T>) {
+        switch(type) {
         case QueryType::EQUALS:
             return *value == query_value;
         case QueryType::LESS_THAN:
@@ -29,116 +31,10 @@ bool match_size_t(const FieldQuery& query, const std::optional<std::size_t>& val
             return *value > query_value;
         case QueryType::CONTAINS:
         default:
-            throw std::runtime_error("Invalid QueryType for std::size_t");
-    }
-
-    return false;
-}
-
-bool match_float(const FieldQuery& query, const std::optional<float>& value) {
-    const QueryType& type = query.get_type();
-
-    if (type == QueryType::HAS_VALUE) {
-        return value.has_value();
-    }
-
-    if (!value.has_value()) {
-        return false;
-    }
-
-    const float& query_value = std::get<float>(query.get_value());
-
-    switch(type) {
-        case QueryType::EQUALS:
-            return *value == query_value;
-        case QueryType::LESS_THAN:
-            return *value < query_value;
-        case QueryType::GREATER_THAN:
-            return *value > query_value;
-        case QueryType::CONTAINS:
-        default:
-            throw std::runtime_error("Invalid QueryType for float");
-    }
-
-    return false;
-}
-
-bool match_string(const FieldQuery& query, const std::optional<std::string>& value) {
-    const QueryType& type = query.get_type();
-
-    if (type == QueryType::HAS_VALUE) {
-        return value.has_value();
-    }
-
-    if (!value.has_value()) {
-        return false;
-    }
-
-    const std::string& query_value = std::get<std::string>(query.get_value());
-
-    std::string first_value = *value;
-    std::string second_value = query_value;
-    if (query.case_insensitive()) {
-        std::transform(first_value.begin(), first_value.end(), first_value.begin(), ::tolower);
-        std::transform(second_value.begin(), second_value.end(), second_value.begin(), ::tolower);
-    }
-
-    switch(type) {
-        case QueryType::EQUALS:
-            return first_value == second_value;
-        case QueryType::CONTAINS:
-            return first_value.find(second_value) != std::string::npos;
-        case QueryType::LESS_THAN:
-        case QueryType::GREATER_THAN:
-        default:
-            throw std::runtime_error("Invalid QueryType for std::string");
-    }
-
-    return false;
-}
-
-bool match_date(const FieldQuery& query, const std::optional<std::chrono::year_month_day>& value) {
-    const QueryType& type = query.get_type();
-
-    if (type == QueryType::HAS_VALUE) {
-        return value.has_value();
-    }
-
-    if (!value.has_value()) {
-        return false;
-    }
-
-    const std::chrono::year_month_day& query_value = std::get<std::chrono::year_month_day>(query.get_value());
-
-    switch(type) {
-        case QueryType::EQUALS:
-            return *value == query_value;
-        case QueryType::LESS_THAN:
-            return *value < query_value;
-        case QueryType::GREATER_THAN:
-            return *value > query_value;
-        case QueryType::CONTAINS:
-        default:
-            throw std::runtime_error("Invalid QueryType for std::chrono::year_month_day");
-    }
-
-    return false;
-}
-
-bool match_time(const FieldQuery& query, const std::optional<std::chrono::hh_mm_ss<std::chrono::minutes>>& value) {
-    const QueryType& type = query.get_type();
-
-    if (type == QueryType::HAS_VALUE) {
-        return value.has_value();
-    }
-
-    if (!value.has_value()) {
-        return false;
-    }
-
-    const std::chrono::hh_mm_ss<std::chrono::minutes>& query_value = std::get<std::chrono::hh_mm_ss<std::chrono::minutes>>(query.get_value());
-
-    switch(type) {
+            throw std::runtime_error("Unsupported QueryType for float/std::size_t/std::chrono::year_month_day");
+        }
+    } else if constexpr (std::is_same_v<std::chrono::hh_mm_ss<std::chrono::minutes>, T>) {
+        switch(type) {
         case QueryType::EQUALS:
             return (*value).to_duration() == query_value.to_duration();
         case QueryType::LESS_THAN:
@@ -147,7 +43,28 @@ bool match_time(const FieldQuery& query, const std::optional<std::chrono::hh_mm_
             return (*value).to_duration() > query_value.to_duration();
         case QueryType::CONTAINS:
         default:
-            throw std::runtime_error("Invalid QueryType for std::chrono::hh_mm_ss");
+            throw std::runtime_error("Unsupported QueryType for std::chrono::hh_mm_ss");
+        }
+    } else if constexpr (std::is_same_v<std::string, T>) {
+        std::string first_value = *value;
+        std::string second_value = query_value;
+        if (query.case_insensitive()) {
+            std::transform(first_value.begin(), first_value.end(), first_value.begin(), ::tolower);
+            std::transform(second_value.begin(), second_value.end(), second_value.begin(), ::tolower);
+        }
+
+        switch(type) {
+        case QueryType::EQUALS:
+            return first_value == second_value;
+        case QueryType::CONTAINS:
+            return first_value.find(second_value) != std::string::npos;
+        case QueryType::LESS_THAN:
+        case QueryType::GREATER_THAN:
+        default:
+            throw std::runtime_error("Unsupported QueryType for std::string");
+        }
+    } else {
+        static_assert(false, "Unsupported type, Only float, std::size_t, std::string, std::chrono::year_month_day, and std::chrono::hh_mm_ss types are allowed.");
     }
 
     return false;
@@ -157,63 +74,63 @@ bool Collision::match_field(const FieldQuery& query) const {
     const std::string& name = query.get_name();
 
     if (name == "crash_date") {
-        return match_date(query, this->crash_date);
+        return do_match(query, this->crash_date);
     } else if (name == "crash_time") {
-        return match_time(query, this->crash_time);
+        return do_match(query, this->crash_time);
     } else if (name == "borough") {
-        return match_string(query, this->borough);
+        return do_match(query, this->borough);
     } else if (name == "zip_code") {
-        return match_size_t(query, this->zip_code);
+        return do_match(query, this->zip_code);
     } else if (name == "latitude") {
-        return match_float(query, this->latitude);
+        return do_match(query, this->latitude);
     } else if (name == "longitude") {
-        return match_float(query, this->longitude);
+        return do_match(query, this->longitude);
     } else if (name == "location") {
-        return match_string(query, this->location);
+        return do_match(query, this->location);
     } else if (name == "on_street_name") {
-        return match_string(query, this->on_street_name);
+        return do_match(query, this->on_street_name);
     } else if (name == "cross_street_name") {
-        return match_string(query, this->cross_street_name);
+        return do_match(query, this->cross_street_name);
     } else if (name == "off_street_name") {
-        return match_string(query, this->off_street_name);
+        return do_match(query, this->off_street_name);
     } else if (name == "number_of_persons_injured") {
-        return match_size_t(query, this->number_of_persons_injured);
+        return do_match(query, this->number_of_persons_injured);
     } else if (name == "number_of_persons_killed") {
-        return match_size_t(query, this->number_of_persons_killed);
+        return do_match(query, this->number_of_persons_killed);
     } else if (name == "number_of_pedestrians_injured") {
-        return match_size_t(query, this->number_of_pedestrians_injured);
+        return do_match(query, this->number_of_pedestrians_injured);
     } else if (name == "number_of_pedestrians_killed") {
-        return match_size_t(query, this->number_of_pedestrians_killed);
+        return do_match(query, this->number_of_pedestrians_killed);
     } else if (name == "number_of_cyclist_injured") {
-        return match_size_t(query, this->number_of_cyclist_injured);
+        return do_match(query, this->number_of_cyclist_injured);
     } else if (name == "number_of_cyclist_killed") {
-        return match_size_t(query, this->number_of_cyclist_killed);
+        return do_match(query, this->number_of_cyclist_killed);
     } else if (name == "number_of_motorist_injured") {
-        return match_size_t(query, this->number_of_motorist_injured);
+        return do_match(query, this->number_of_motorist_injured);
     } else if (name == "number_of_motorist_killed") {
-        return match_size_t(query, this->number_of_motorist_killed);
+        return do_match(query, this->number_of_motorist_killed);
     } else if (name == "contributing_factor_vehicle_1") {
-        return match_string(query, this->contributing_factor_vehicle_1);
+        return do_match(query, this->contributing_factor_vehicle_1);
     } else if (name == "contributing_factor_vehicle_2") {
-        return match_string(query, this->contributing_factor_vehicle_2);
+        return do_match(query, this->contributing_factor_vehicle_2);
     } else if (name == "contributing_factor_vehicle_3") {
-        return match_string(query, this->contributing_factor_vehicle_3);
+        return do_match(query, this->contributing_factor_vehicle_3);
     } else if (name == "contributing_factor_vehicle_4") {
-        return match_string(query, this->contributing_factor_vehicle_4);
+        return do_match(query, this->contributing_factor_vehicle_4);
     } else if (name == "contributing_factor_vehicle_5") {
-        return match_string(query, this->contributing_factor_vehicle_5);
+        return do_match(query, this->contributing_factor_vehicle_5);
     } else if (name == "collision_id") {
-        return match_size_t(query, this->collision_id);
+        return do_match(query, this->collision_id);
     } else if (name == "vehicle_type_code_1") {
-        return match_string(query, this->vehicle_type_code_1);
+        return do_match(query, this->vehicle_type_code_1);
     } else if (name == "vehicle_type_code_2") {
-        return match_string(query, this->vehicle_type_code_2);
+        return do_match(query, this->vehicle_type_code_2);
     } else if (name == "vehicle_type_code_3") {
-        return match_string(query, this->vehicle_type_code_3);
+        return do_match(query, this->vehicle_type_code_3);
     } else if (name == "vehicle_type_code_4") {
-        return match_string(query, this->vehicle_type_code_4);
+        return do_match(query, this->vehicle_type_code_4);
     } else if (name == "vehicle_type_code_5") {
-        return match_string(query, this->vehicle_type_code_5);
+        return do_match(query, this->vehicle_type_code_5);
     }
 
     return false;
