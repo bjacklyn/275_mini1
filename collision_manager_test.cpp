@@ -621,3 +621,65 @@ TEST_F(CollisionManagerTest, CompoundQuery_Match_MutipleFields) {
     " occuring after time " << crash_time << " injuring " << persons_injured << " people. " << std::endl;
 
 }
+
+
+TEST_F(CollisionManagerTest, CompoundQuery_Match_MutipleCollisions) {
+
+    std::string contributing_factor_vehicle_2 = "Unspecified";
+    std::string vehicle_type_code_1 = "Bus";
+    std::string vehicle_type_code_2 = "Station Wagon/";
+    std::string borough = "brooklyn";
+
+    std::chrono::year_month_day date1{
+        std::chrono::year{2021},
+        std::chrono::month{9},
+        std::chrono::day{11}
+    };
+    std::chrono::year_month_day date2{
+        std::chrono::year{2022},
+        std::chrono::month{6},
+        std::chrono::day{29}
+    };
+
+    Query query1 = Query::create("borough", QueryType::EQUALS, borough, Qualifier::CASE_INSENSITIVE)
+    .add("crash_date" , QueryType::GREATER_THAN, date1)
+    .add("crash_date" , QueryType::LESS_THAN, date2)
+    .add("contributing_factor_vehicle_2", QueryType::EQUALS, contributing_factor_vehicle_2)
+    .add("vehicle_type_code_1", QueryType::EQUALS, vehicle_type_code_1)
+    .add("vehicle_type_code_2", QueryType::CONTAINS, vehicle_type_code_2);
+
+    std::vector<const Collision*> results = collision_manager_m.search(query1);
+
+    EXPECT_GT(results.size(), 0) << "Search should return at least one result";
+
+    for (const auto *collision : results)
+    {
+        EXPECT_TRUE(collision->borough == borough &&
+        collision->crash_date > date1 &&collision->crash_date < date2 &&
+        collision->contributing_factor_vehicle_2 == contributing_factor_vehicle_2 &&
+        collision->vehicle_type_code_1 == vehicle_type_code_1 || collision->vehicle_type_code_2.has_value() && collision->vehicle_type_code_2.value().find(vehicle_type_code_2) != std::string::npos)
+            << "Each result should have dates in between " << date1 << " and " << date2 << " . The contributing factor to the collisions is anything " << contributing_factor_vehicle_2
+            << " . The vehicles involved are " << vehicle_type_code_1 << " and " << vehicle_type_code_2;
+    }
+
+    std::cout << "Found " << results.size() << " collisions at " << borough << " between dates " << date1 << " and " <<  date2 <<
+    " . The contributing factor to the collisions is  " << contributing_factor_vehicle_2 << " . The vehicles involved are " << vehicle_type_code_1 << " and "<< vehicle_type_code_2 << std::endl;
+}
+
+
+TEST_F(CollisionManagerTest, Query_Match_VehicleType) {
+
+    std::string vehicle_type_code_2 = "Station Wagon";
+    Query query1 = Query::create("vehicle_type_code_2", QueryType::CONTAINS, vehicle_type_code_2);
+
+    std::vector<const Collision*> results = collision_manager_m.search(query1);
+
+    EXPECT_GT(results.size(), 0) << "Search should return at least one result";
+
+    for(const auto *collision : results) {
+        EXPECT_TRUE(collision->vehicle_type_code_2.has_value() && collision->vehicle_type_code_2.value().find(vehicle_type_code_2) != std::string::npos) << " Each result should contain " << vehicle_type_code_2;
+    }
+
+    std::cout << " Found " << results.size() << " with vehicle_type_code_2 containing " << vehicle_type_code_2;
+
+}
