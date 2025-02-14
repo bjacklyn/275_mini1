@@ -9,7 +9,7 @@ class CollisionParser {
 
 public:
     CollisionParser(const std::string& filename);
-    std::vector<Collision> parse();
+    Collisions parse();
 
 private:
     std::string filename;
