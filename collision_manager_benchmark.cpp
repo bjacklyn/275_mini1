@@ -13,6 +13,10 @@ public:
     {
         if (collision_manager.get() == nullptr) {
             collision_manager = std::make_unique<CollisionManager>(std::string("../Motor_Vehicle_Collisions_-_Crashes_20250123.csv"));
+		if (!collision_manager->is_initialized()) {
+                    std::cerr << "Could not initialize collision manager: " << collision_manager->get_initialization_error() << std::endl;
+                std::exit(1);
+            }
         }
     }
 };
@@ -26,11 +30,29 @@ BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchSingleStringFieldNoMatches)(
     }
 }
 
+BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchSingleStringFieldNoMatchesParallel)(benchmark::State& state) {
+    Query query = Query::create("borough", QueryType::EQUALS, "Nothing should match me");
+
+    for (auto _ : state) {
+        std::vector<const Collision*> results = collision_manager->searchOpenMp(query);
+        benchmark::DoNotOptimize(results);
+    }
+}
+
 BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchSingleStringFieldSomeMatches)(benchmark::State& state) {
     Query query = Query::create("borough", QueryType::EQUALS, "BROOKLYN");
 
     for (auto _ : state) {
         std::vector<const Collision*> results = collision_manager->search(query);
+        benchmark::DoNotOptimize(results);
+    }
+}
+
+BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchSingleStringFieldSomeMatchesParallel)(benchmark::State& state) {
+    Query query = Query::create("borough", QueryType::EQUALS, "BROOKLYN");
+
+    for (auto _ : state) {
+        std::vector<const Collision*> results = collision_manager->searchOpenMp(query);
         benchmark::DoNotOptimize(results);
     }
 }
@@ -54,7 +76,9 @@ BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchSingleSizeTFieldSomeMatches)
 }
 
 BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchSingleStringFieldNoMatches)->Iterations(50);
+BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchSingleStringFieldNoMatchesParallel)->Iterations(50);
 BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchSingleStringFieldSomeMatches)->Iterations(50);
+BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchSingleStringFieldSomeMatchesParallel)->Iterations(50);
 BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchSingleSizeTFieldNoMatches)->Iterations(50);
 BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchSingleSizeTFieldSomeMatches)->Iterations(50);
 
