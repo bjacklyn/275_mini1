@@ -7,6 +7,13 @@ endif()
 
 project(collision_manager)
 
+find_package(OpenMP)
+if(OpenMP_CXX_FOUND)
+    message(STATUS "Found OpenMP ${OpenMP_CXX_VERSION}")
+else()
+    message(STATUS "OpenMP not found!")
+endif()
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -14,6 +21,10 @@ if(APPLE)
    include_directories(SYSTEM /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include)
    include_directories(/usr/local/Homebrew/Cellar/gcc/14.2.0_1/include/c++/14)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64")
+
+   if(OpenMP_CXX_FOUND)
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+   endif()
 endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g3")
@@ -46,6 +57,8 @@ endif()
 FetchContent_MakeAvailable(benchmark)
 
 add_library(collision_manager query.cpp collision.cpp collision_parser.cpp collision_manager.cpp)
+target_link_libraries(collision_manager PUBLIC OpenMP::OpenMP_CXX)
+
 add_executable(main main.cpp)
 target_link_libraries(main collision_manager)
 
