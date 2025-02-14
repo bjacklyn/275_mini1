@@ -31,11 +31,17 @@ FetchContent_MakeAvailable(googletest)
 set(BENCHMARK_ENABLE_TESTING OFF)
 set(BENCHMARK_ENABLE_GTEST_TESTS OFF)
 set(BENCHMARK_ENABLE_ASSEMBLY_TESTS OFF)
+
 FetchContent_Declare(
   benchmark
   GIT_REPOSITORY https://github.com/google/benchmark.git
   GIT_TAG v1.9.1
 )
+
+if(APPLE)
+set (HAVE_STD_REGEX ON)
+set (RUN_HAVE_STD_REGEX 1)
+endif()
 
 FetchContent_MakeAvailable(benchmark)
 
