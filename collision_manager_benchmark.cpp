@@ -17,6 +17,12 @@ public:
     }
 };
 
+/**
+ *   Category  - String search 
+ *   API - Fetch Borough  column 
+ *   Scenario - Worst Case   
+ * 
+ */
 BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchSingleStringFieldNoMatches)(benchmark::State& state) {
     Query query = Query::create("borough", QueryType::EQUALS, "Nothing should match me");
 
@@ -25,6 +31,13 @@ BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchSingleStringFieldNoMatches)(
         benchmark::DoNotOptimize(results);
     }
 }
+
+/**
+ *   Category  - String search 
+ *   API - Fetch Borough  column 
+ *   Scenario - Normal   
+ * 
+ */
 
 BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchSingleStringFieldSomeMatches)(benchmark::State& state) {
     Query query = Query::create("borough", QueryType::EQUALS, "BROOKLYN");
@@ -35,6 +48,13 @@ BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchSingleStringFieldSomeMatches
     }
 }
 
+/**
+ *   Category  - Integer search
+ *   API - Fetch Zip  column 
+ *   Scenario - Worst Case   
+ * 
+ */
+
 BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchSingleSizeTFieldNoMatches)(benchmark::State& state) {
     Query query = Query::create("zip_code", QueryType::EQUALS, std::numeric_limits<size_t>::max());
 
@@ -43,6 +63,13 @@ BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchSingleSizeTFieldNoMatches)(b
         benchmark::DoNotOptimize(results);
     }
 }
+
+/**
+ *   Category  - Integer search
+ *   API - Fetch Zip  column 
+ *   Scenario - Normal   
+ * 
+ */
 
 BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchSingleSizeTFieldSomeMatches)(benchmark::State& state) {
     Query query = Query::create("zip_code", QueryType::EQUALS, 11208ULL);
@@ -53,7 +80,27 @@ BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchSingleSizeTFieldSomeMatches)
     }
 }
 
+/**
+ *   Category  - Date range
+ *   API - Fetch collision between Dates
+ *   Scenario - Normal   
+ * 
+ */
 
+BENCHMARK_DEFINE_F(CollisionManagerBenchmark, fetchbetweendates)(benchmark::State& state) {
+    
+    Query query = Query::create("zip_code", QueryType::EQUALS, 11208ULL);
+
+    for (auto _ : state) {
+        std::vector<const Collision*> results = collision_manager->search(query);
+        benchmark::DoNotOptimize(results);
+    }
+}
+
+
+
+
+/*
 BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchAllFields)(benchmark::State& state) {
     
     Query query = Query::create("zip_code", QueryType::EQUALS, 11208ULL).add("borough", QueryType::EQUALS, "BROOKLYN");
@@ -64,11 +111,13 @@ BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchAllFields)(benchmark::State&
     }
 }
 
+*/
+
 
 BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchSingleStringFieldNoMatches)->Iterations(50);
 BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchSingleStringFieldSomeMatches)->Iterations(50);
 BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchSingleSizeTFieldNoMatches)->Iterations(50);
 BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchSingleSizeTFieldSomeMatches)->Iterations(50);
-BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchAllFields)->Iterations(50);
+//BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchAllFields)->Iterations(50);
 
 BENCHMARK_MAIN();
