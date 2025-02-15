@@ -4,6 +4,7 @@
 
 #include <string>
 
+#include <omp.h>
 
 CollisionManager::CollisionManager(const std::string& filename) {
     CollisionParser parser{filename};
@@ -29,13 +30,22 @@ const std::string& CollisionManager::get_initialization_error() {
     return this->initialization_error_;
 }
 
-const std::vector<const Collision*> CollisionManager::search(const Query& query) {
+const std::vector<const Collision*> CollisionManager::searchOpenMp(const Query& query) {
     std::vector<const Collision*> results;
 
-    for (const Collision& collision : this->collisions_) {
-        if (collision.match(query)) {
-            results.push_back(&collision);
+    unsigned long num_threads = omp_get_max_threads();
+    std::vector<std::vector<const Collision*>> thread_local_results(num_threads);
+
+    #pragma omp parallel for schedule(static)
+    for (size_t i = 0; i < collisions_.size(); ++i) {
+        if (collisions_[i].match(query)) {
+            int thread_id = omp_get_thread_num();
+            thread_local_results[thread_id].push_back(&collisions_[i]);
         }
+    }
+
+    for (const auto& local_results : thread_local_results) {
+        results.insert(results.end(), local_results.begin(), local_results.end());
     }
 
     return results;
