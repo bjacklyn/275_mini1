@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
     //Query query = Query::create("crash_date", QueryType::LESS_THAN, 1ULL);
     //Query query = Query::create("crash_time", QueryType::LESS_THAN, 1ULL);
 
-    std::vector<Collision> collisions = collision_manager.searchOpenMp(query3);
+    std::vector<CollisionProxy> collisions = collision_manager.searchOpenMp(query3);
     std::cout << collisions.at(0) << std::endl;
     std::cout << collisions.at(1) << std::endl;
     std::cout << collisions.at(2) << std::endl;
@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
 
 
     Query query4 = Query::create("borough", Qualifier::NOT, QueryType::EQUALS, "BROOKLYN");
-    collisions = collision_manager.search(query4);
+    collisions = collision_manager.searchOpenMp(query4);
     std::cout << collisions.at(0) << std::endl;
     std::cout << collisions.at(1) << std::endl;
     std::cout << collisions.at(2) << std::endl;

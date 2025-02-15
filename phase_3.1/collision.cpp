@@ -150,7 +150,7 @@ bool Collisions::match(const Query& query, const std::size_t index) const {
     return true;
 }
 
-std::ostream& operator<<(std::ostream& os, const Collision& collision) {
+std::ostream& operator<<(std::ostream& os, const CollisionProxy& collision) {
     os << "Collision: {";
 
     os << std::format("crash_date = {}", collision.crash_date->has_value() ?
@@ -214,6 +214,40 @@ std::ostream& operator<<(std::ostream& os, const Collision& collision) {
 
     os << "}";
     return os;
+}
+
+void Collisions::add(const Collision& collision) {
+    crash_dates.push_back(collision.crash_date);
+    crash_times.push_back(collision.crash_time);
+    boroughs.push_back(collision.borough);
+    zip_codes.push_back(collision.zip_code);
+    latitudes.push_back(collision.latitude);
+    longitudes.push_back(collision.longitude);
+    locations.push_back(collision.location);
+    on_street_names.push_back(collision.on_street_name);
+    cross_street_names.push_back(collision.cross_street_name);
+    off_street_names.push_back(collision.off_street_name);
+    numbers_of_persons_injured.push_back(collision.number_of_persons_injured);
+    numbers_of_persons_killed.push_back(collision.number_of_persons_killed);
+    numbers_of_pedestrians_injured.push_back(collision.number_of_pedestrians_injured);
+    numbers_of_pedestrians_killed.push_back(collision.number_of_pedestrians_killed);
+    numbers_of_cyclist_injured.push_back(collision.number_of_cyclist_injured);
+    numbers_of_cyclist_killed.push_back(collision.number_of_cyclist_killed);
+    numbers_of_motorist_injured.push_back(collision.number_of_motorist_injured);
+    numbers_of_motorist_killed.push_back(collision.number_of_motorist_killed);
+    contributing_factor_vehicles_1.push_back(collision.contributing_factor_vehicle_1);
+    contributing_factor_vehicles_2.push_back(collision.contributing_factor_vehicle_2);
+    contributing_factor_vehicles_3.push_back(collision.contributing_factor_vehicle_3);
+    contributing_factor_vehicles_4.push_back(collision.contributing_factor_vehicle_4);
+    contributing_factor_vehicles_5.push_back(collision.contributing_factor_vehicle_5);
+    collision_ids.push_back(collision.collision_id);
+    vehicle_type_codes_1.push_back(collision.vehicle_type_code_1);
+    vehicle_type_codes_2.push_back(collision.vehicle_type_code_2);
+    vehicle_type_codes_3.push_back(collision.vehicle_type_code_3);
+    vehicle_type_codes_4.push_back(collision.vehicle_type_code_4);
+    vehicle_type_codes_5.push_back(collision.vehicle_type_code_5);
+
+    size_++;
 }
 
 void Collisions::combine(const Collisions& other) {
