@@ -175,6 +175,38 @@ BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchDatesRangeSomeMatches)(bench
     }
 }
 
+BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchRangeofCoordinates_DateRangeSomeMatches)(benchmark::State& state) {
+
+    std::string borough = "BROOKLYN";
+    float latitude = 40.63165f;
+    float longitude = -73.88505f;
+
+    std::chrono::year_month_day date1{
+        std::chrono::year{2021},
+        std::chrono::month{9},
+        std::chrono::day{11}
+    };
+
+    std::chrono::year_month_day date2{
+        std::chrono::year{2022},
+        std::chrono::month{6},
+        std::chrono::day{29}
+    };
+
+    Query query = Query::create("borough", QueryType::EQUALS,borough)
+                      .add("latitude", QueryType::GREATER_THAN, latitude)
+                      .add("latitude", QueryType::LESS_THAN, latitude)
+                      .add("longitude", QueryType::GREATER_THAN, longitude)
+                      .add("longitude", QueryType::LESS_THAN, longitude)
+                      .add("crash_date", QueryType::GREATER_THAN, date1)
+                      .add("crash_date", QueryType::LESS_THAN, date2);
+
+    for(auto _ : state) {
+        std::vector<const Collision*> results = collision_manager->search(query);
+        benchmark::DoNotOptimize(results);
+    }
+}
+
 BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchSingleStringFieldNoMatches)->Iterations(50);
 BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchSingleStringFieldSomeMatches)->Iterations(50);
 BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchSingleSizeTFieldNoMatches)->Iterations(50);
@@ -189,5 +221,6 @@ BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchBorough_LessThanLatitudeSo
 BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchRangeofCoordinatesSomeMatches)->Iterations(50);
 BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchDatesEqualsSomeMatches)->Iterations(50);
 BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchDatesRangeSomeMatches)->Iterations(50);
+BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchRangeofCoordinates_DateRangeSomeMatches)->Iterations(50);
 
 BENCHMARK_MAIN();
