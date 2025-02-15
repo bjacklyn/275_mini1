@@ -21,6 +21,13 @@ CollisionManager::CollisionManager(Collisions& collisions) {
     this->collisions_ = collisions;
 }
 
+CollisionManager::CollisionManager(const std::vector<Collision>& collisions) {
+    collisions_ = {};
+    for (const Collision& collision : collisions) {
+        collisions_.add(collision);
+    }
+}
+
 bool CollisionManager::is_initialized() {
     return this->initialization_error_.empty();
 }
@@ -29,8 +36,8 @@ const std::string& CollisionManager::get_initialization_error() {
     return this->initialization_error_;
 }
 
-const Collision CollisionManager::index_to_collision(const std::size_t index) {
-    Collision collision{};
+const CollisionProxy CollisionManager::index_to_collision(const std::size_t index) {
+    CollisionProxy collision{};
     collision.crash_date = &(collisions_.crash_dates[index]);
     collision.crash_time = &(collisions_.crash_times[index]);
     collision.borough = &(collisions_.boroughs[index]);
@@ -63,8 +70,8 @@ const Collision CollisionManager::index_to_collision(const std::size_t index) {
     return collision;
 }
 
-const std::vector<Collision> CollisionManager::search(const Query& query) {
-    std::vector<Collision> results;
+const std::vector<CollisionProxy> CollisionManager::search(const Query& query) {
+    std::vector<CollisionProxy> results;
 
     for (std::size_t index = 0; index < collisions_.size(); ++index) {
         if (collisions_.match(query, index)) {

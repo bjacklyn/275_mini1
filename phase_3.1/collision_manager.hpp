@@ -13,14 +13,15 @@ public:
 
     bool is_initialized();
     const std::string& get_initialization_error();
-    const std::vector<Collision> search(const Query& query);
+    const std::vector<CollisionProxy> search(const Query& query);
 
     friend class CollisionManagerTest;
 
 private:
     CollisionManager(Collisions& collisions);
+    CollisionManager(const std::vector<Collision>& collisions);
 
-    const Collision index_to_collision(const std::size_t index);
+    const CollisionProxy index_to_collision(const std::size_t index);
 
     std::string initialization_error_;
     Collisions collisions_;
