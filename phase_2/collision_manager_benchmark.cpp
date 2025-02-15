@@ -175,7 +175,6 @@ BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchDatesRangeSomeMatches)(bench
     }
 }
 
-
 BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchSingleStringFieldNoMatches)->Iterations(50);
 BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchSingleStringFieldSomeMatches)->Iterations(50);
 BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchSingleSizeTFieldNoMatches)->Iterations(50);
