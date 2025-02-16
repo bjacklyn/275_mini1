@@ -16,10 +16,13 @@ CollisionManager::CollisionManager(const std::string& filename) {
         this->collisions_ = {};
         this->initialization_error_ = e.what();
     }
+
+    create_proxies();
 }
 
 CollisionManager::CollisionManager(Collisions& collisions) {
     this->collisions_ = collisions;
+    create_proxies();
 }
 
 CollisionManager::CollisionManager(const std::vector<Collision>& collisions) {
@@ -27,6 +30,7 @@ CollisionManager::CollisionManager(const std::vector<Collision>& collisions) {
     for (const Collision& collision : collisions) {
         collisions_.add(collision);
     }
+    create_proxies();
 }
 
 bool CollisionManager::is_initialized() {
@@ -71,17 +75,26 @@ const CollisionProxy CollisionManager::index_to_collision(const std::size_t inde
     return collision;
 }
 
-const std::vector<CollisionProxy> CollisionManager::searchOpenMp(const Query& query) {
-    std::vector<CollisionProxy> results;
+void CollisionManager::create_proxies() {
+    for (std::size_t index = 0; index < collisions_.size(); ++index) {
+        collision_proxies_.push_back(index_to_collision(index));
+    }
+
+    std::cout << "Collisions size: " << collisions_.size() << std::endl;
+    std::cout << "Collisions Proxies size: " << collision_proxies_.size() << std::endl;
+}
+
+const std::vector<CollisionProxy*> CollisionManager::searchOpenMp(const Query& query) {
+    std::vector<CollisionProxy*> results;
 
     unsigned long num_threads = omp_get_max_threads();
-    std::vector<std::vector<CollisionProxy>> thread_local_results(num_threads);
+    std::vector<std::vector<CollisionProxy*>> thread_local_results(num_threads);
 
     #pragma omp parallel for schedule(static)
     for (std::size_t index = 0; index < collisions_.size(); ++index) {
         if (collisions_.match(query, index)) {
             int thread_id = omp_get_thread_num();
-            thread_local_results[thread_id].push_back(index_to_collision(index));
+            thread_local_results[thread_id].push_back(&collision_proxies_.at(index));
         }
     }
 
