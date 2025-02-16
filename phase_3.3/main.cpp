@@ -41,9 +41,9 @@ int main(int argc, char *argv[]) {
     std::cout << *collisions.at(4) << std::endl;
     std::cout << *collisions.at(5) << std::endl;
 */
-    Query query = Query::create("latitude", QueryType::LESS_THAN, 100000.0f);
-    Query query2 = Query::create("collision_id", QueryType::LESS_THAN, 10000ULL);
-    Query query3 = Query::create("borough", QueryType::EQUALS, "BROOKLYN");
+    Query query = Query::create(CollisionField::LATITUDE, QueryType::LESS_THAN, 100000.0f);
+    Query query2 = Query::create(CollisionField::COLLISION_ID, QueryType::LESS_THAN, 10000ULL);
+    Query query3 = Query::create(CollisionField::BOROUGH, QueryType::EQUALS, "BROOKLYN");
     //Query query = Query::create("crash_date", QueryType::LESS_THAN, 1ULL);
     //Query query = Query::create("crash_time", QueryType::LESS_THAN, 1ULL);
 
@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
     std::cout << *collisions.at(4) << std::endl;
 
 
-    Query query4 = Query::create("borough", Qualifier::NOT, QueryType::EQUALS, "BROOKLYN");
+    Query query4 = Query::create(CollisionField::BOROUGH, Qualifier::NOT, QueryType::EQUALS, "BROOKLYN");
     collisions = collision_manager.searchOpenMp(query4);
     std::cout << "Number collisions found: " << collisions.size() << std::endl;
     std::cout << *collisions.at(0) << std::endl;

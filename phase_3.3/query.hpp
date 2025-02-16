@@ -1,5 +1,7 @@
 #pragma once
 
+#include "collision_field_enum.hpp"
+
 #include <cassert>
 #include <chrono>
 #include <string>
@@ -12,14 +14,14 @@ enum class Qualifier { NONE, NOT, CASE_INSENSITIVE };
 
 class FieldQuery {
 private:
-    FieldQuery(const std::string& name, const QueryType& type, const Value& value, bool invert_match, bool case_insensitive)
+    FieldQuery(const CollisionField& name, const QueryType& type, const Value& value, bool invert_match, bool case_insensitive)
       : name_{name},
         type_{type},
         value_{value},
         invert_match_{invert_match},
         case_insensitive_{case_insensitive} {}
 
-    const std::string name_;
+    const CollisionField name_;
     const QueryType type_;
     const Value value_;
     const bool invert_match_;
@@ -28,7 +30,7 @@ private:
 public:
     friend class Query;
 
-    const std::string& get_name() const;
+    const CollisionField& get_name() const;
     const QueryType& get_type() const;
     const Value& get_value() const;
     const bool invert_match() const;
@@ -43,7 +45,7 @@ private:
 
     std::vector<FieldQuery> queries;
 
-    static FieldQuery create_field_query(const std::string_view& name,
+    static FieldQuery create_field_query(const CollisionField& name,
                                          const Qualifier& not_qualifier,
                                          const QueryType& type,
                                          const Value value,
@@ -52,13 +54,13 @@ private:
 public:
     const std::vector<FieldQuery>& get() const;
 
-    Query& add(const std::string_view& name, const QueryType& type, const Value value);
-    Query& add(const std::string_view& name, const Qualifier& not_qualifier, const QueryType& type, const Value value);
-    Query& add(const std::string_view& name, const QueryType& type, const Value value, const Qualifier& case_insensitive_qualifier);
-    Query& add(const std::string_view& name, const Qualifier& not_qualifier, const QueryType& type, const Value value, const Qualifier& case_insensitive_qualifier);
+    Query& add(const CollisionField& name, const QueryType& type, const Value value);
+    Query& add(const CollisionField& name, const Qualifier& not_qualifier, const QueryType& type, const Value value);
+    Query& add(const CollisionField& name, const QueryType& type, const Value value, const Qualifier& case_insensitive_qualifier);
+    Query& add(const CollisionField& name, const Qualifier& not_qualifier, const QueryType& type, const Value value, const Qualifier& case_insensitive_qualifier);
 
-    static Query create(const std::string_view& name, const QueryType& type, const Value value);
-    static Query create(const std::string_view& name, const Qualifier& not_qualifier, const QueryType& type, const Value value);
-    static Query create(const std::string_view& name, const QueryType& type, const Value value, const Qualifier& case_insensitive_qualifier);
-    static Query create(const std::string_view& name, const Qualifier& not_qualifier, const QueryType& type, const Value value, const Qualifier& case_insensitive_qualifier);
+    static Query create(const CollisionField& name, const QueryType& type, const Value value);
+    static Query create(const CollisionField& name, const Qualifier& not_qualifier, const QueryType& type, const Value value);
+    static Query create(const CollisionField& name, const QueryType& type, const Value value, const Qualifier& case_insensitive_qualifier);
+    static Query create(const CollisionField& name, const Qualifier& not_qualifier, const QueryType& type, const Value value, const Qualifier& case_insensitive_qualifier);
 };

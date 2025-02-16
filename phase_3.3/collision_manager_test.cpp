@@ -34,17 +34,17 @@ protected:
 TEST_F(CollisionManagerTest, ValidQueriesDoNotThrowExceptions) {
     // String field and parameter is a string
     EXPECT_NO_THROW({
-        Query::create("borough", QueryType::EQUALS, "Hello world");
+        Query::create(CollisionField::BOROUGH, QueryType::EQUALS, "Hello world");
     });
 
     // Size_t field and parameter is a size_t
     EXPECT_NO_THROW({
-        Query::create("collision_id", QueryType::EQUALS, 100ULL);
+        Query::create(CollisionField::COLLISION_ID, QueryType::EQUALS, 100ULL);
     });
 
     // Date field and parameter is a date
     EXPECT_NO_THROW({
-        Query::create("crash_date", QueryType::EQUALS, std::chrono::year_month_day{
+        Query::create(CollisionField::CRASH_DATE, QueryType::EQUALS, std::chrono::year_month_day{
             std::chrono::year{2021},
             std::chrono::month{9},
             std::chrono::day{11}}
@@ -53,26 +53,26 @@ TEST_F(CollisionManagerTest, ValidQueriesDoNotThrowExceptions) {
 
     // Time field and parameter is a time
     EXPECT_NO_THROW({
-        Query::create("crash_time", QueryType::EQUALS, std::chrono::hh_mm_ss<std::chrono::minutes>{
+        Query::create(CollisionField::CRASH_TIME, QueryType::EQUALS, std::chrono::hh_mm_ss<std::chrono::minutes>{
             std::chrono::hours{9} + std::chrono::minutes{35}}
         );
     });
 
     // Float field and parameter is a float
     EXPECT_NO_THROW({
-        Query::create("latitude", QueryType::EQUALS, 1.0f);
+        Query::create(CollisionField::LATITUDE, QueryType::EQUALS, 1.0f);
     });
 }
 
 TEST_F(CollisionManagerTest, InvalidQueriesThrowExceptions) {
     // String field but parameter is a float
     EXPECT_THROW({
-        Query::create("borough", QueryType::EQUALS, 1.0f);
+        Query::create(CollisionField::BOROUGH, QueryType::EQUALS, 1.0f);
     }, std::invalid_argument);
 
     // Size_t field but parameter is a date
     EXPECT_THROW({
-        Query::create("collision_id", QueryType::EQUALS, std::chrono::year_month_day{
+        Query::create(CollisionField::COLLISION_ID, QueryType::EQUALS, std::chrono::year_month_day{
             std::chrono::year{2021},
             std::chrono::month{9},
             std::chrono::day{11}}
@@ -81,19 +81,19 @@ TEST_F(CollisionManagerTest, InvalidQueriesThrowExceptions) {
 
     // Date field but parameter is a time
     EXPECT_THROW({
-        Query::create("crash_date", QueryType::EQUALS, std::chrono::hh_mm_ss<std::chrono::minutes>{
+        Query::create(CollisionField::CRASH_DATE, QueryType::EQUALS, std::chrono::hh_mm_ss<std::chrono::minutes>{
             std::chrono::hours{9} + std::chrono::minutes{35}}
         );
     }, std::invalid_argument);
 
     // Time field but parameter is a string
     EXPECT_THROW({
-        Query::create("crash_time", QueryType::EQUALS, "Hello world");
+        Query::create(CollisionField::CRASH_TIME, QueryType::EQUALS, "Hello world");
     }, std::invalid_argument);
 
     // Float field but parameter is a size_t
     EXPECT_THROW({
-        Query::create("latitude", QueryType::EQUALS, 100ULL);
+        Query::create(CollisionField::LATITUDE, QueryType::EQUALS, 100ULL);
     }, std::invalid_argument);
 }
 
@@ -101,7 +101,7 @@ TEST_F(CollisionManagerTest, MatchEmpty) {
     std::vector<Collision> collisions{};
     CollisionManager collision_manager = create_collision_manager(collisions);
 
-    Query query = Query::create("borough", QueryType::EQUALS, "Nothing should match me");
+    Query query = Query::create(CollisionField::BOROUGH, QueryType::EQUALS, "Nothing should match me");
 
     std::vector<CollisionProxy*> results = collision_manager.searchOpenMp(query);
     EXPECT_EQ(results.size(), 0);
@@ -115,11 +115,11 @@ TEST_F(CollisionManagerTest, MatchEquals) {
 
     CollisionManager collision_manager = create_collision_manager(collisions);
 
-    Query query1 = Query::create("borough", QueryType::EQUALS, "Nothing should match me");
+    Query query1 = Query::create(CollisionField::BOROUGH, QueryType::EQUALS, "Nothing should match me");
     std::vector<CollisionProxy*> results1 = collision_manager.searchOpenMp(query1);
     EXPECT_EQ(results1.size(), 0);
 
-    Query query2 = Query::create("borough", QueryType::EQUALS, "BROOKLYN");
+    Query query2 = Query::create(CollisionField::BOROUGH, QueryType::EQUALS, "BROOKLYN");
     std::vector<CollisionProxy*> results2 = collision_manager.searchOpenMp(query2);
     EXPECT_EQ(results2.size(), 1);
 }
@@ -141,26 +141,26 @@ TEST_F(CollisionManagerTest, CompoundMatchEquals) {
 
     CollisionManager collision_manager = create_collision_manager(collisions);
 
-    Query query1 = Query::create("borough", QueryType::EQUALS, "BROOKLYN")
-        .add("collision_id", QueryType::EQUALS, 10ULL);
+    Query query1 = Query::create(CollisionField::BOROUGH, QueryType::EQUALS, "BROOKLYN")
+        .add(CollisionField::COLLISION_ID, QueryType::EQUALS, 10ULL);
     std::vector<CollisionProxy*> results1 = collision_manager.searchOpenMp(query1);
     EXPECT_EQ(results1.size(), 0);
 
-    Query query2 = Query::create("borough", QueryType::EQUALS, "BROOKLYN")
-        .add("collision_id", QueryType::EQUALS, 1ULL);
+    Query query2 = Query::create(CollisionField::BOROUGH, QueryType::EQUALS, "BROOKLYN")
+        .add(CollisionField::COLLISION_ID, QueryType::EQUALS, 1ULL);
     std::vector<CollisionProxy*> results2 = collision_manager.searchOpenMp(query2);
     EXPECT_EQ(results2.size(), 1);
     EXPECT_EQ(*results2[0]->borough, "BROOKLYN");
     EXPECT_EQ(*results2[0]->collision_id, 1ULL);
 
-    Query query3 = Query::create("borough", QueryType::EQUALS, "QUEENS")
-        .add("collision_id", QueryType::EQUALS, 3ULL);
+    Query query3 = Query::create(CollisionField::BOROUGH, QueryType::EQUALS, "QUEENS")
+        .add(CollisionField::COLLISION_ID, QueryType::EQUALS, 3ULL);
     std::vector<CollisionProxy*> results3 = collision_manager.searchOpenMp(query3);
     EXPECT_EQ(results3.size(), 1);
     EXPECT_EQ(*results3[0]->borough, "QUEENS");
     EXPECT_EQ(*results3[0]->collision_id, 3ULL);
 
-    Query query4 = Query::create("borough", QueryType::EQUALS, "BROOKLYN");
+    Query query4 = Query::create(CollisionField::BOROUGH, QueryType::EQUALS, "BROOKLYN");
     std::vector<CollisionProxy*> results4 = collision_manager.searchOpenMp(query4);
     EXPECT_EQ(results4.size(), 2);
     EXPECT_EQ(*results4[0]->borough, "BROOKLYN");
@@ -180,16 +180,16 @@ TEST_F(CollisionManagerTest, MatchNotEquals) {
 
     CollisionManager collision_manager = create_collision_manager(collisions);
 
-    Query query1 = Query::create("borough", QueryType::EQUALS, "Nothing should match me");
+    Query query1 = Query::create(CollisionField::BOROUGH, QueryType::EQUALS, "Nothing should match me");
     std::vector<CollisionProxy*> results1 = collision_manager.searchOpenMp(query1);
     EXPECT_EQ(results1.size(), 0);
 
-    Query query2 = Query::create("borough", QueryType::EQUALS, "BROOKLYN");
+    Query query2 = Query::create(CollisionField::BOROUGH, QueryType::EQUALS, "BROOKLYN");
     std::vector<CollisionProxy*> results2 = collision_manager.searchOpenMp(query2);
     EXPECT_EQ(results2.size(), 1);
     EXPECT_EQ(*results2[0]->borough, "BROOKLYN");
 
-    Query query3 = Query::create("borough", Qualifier::NOT, QueryType::EQUALS, "BROOKLYN");
+    Query query3 = Query::create(CollisionField::BOROUGH, Qualifier::NOT, QueryType::EQUALS, "BROOKLYN");
     std::vector<CollisionProxy*> results3 = collision_manager.searchOpenMp(query3);
     EXPECT_EQ(results3.size(), 1);
     EXPECT_EQ(*results3[0]->borough, "QUEENS");
@@ -206,22 +206,21 @@ TEST_F(CollisionManagerTest, MatchCaseInsensitive) {
 
     CollisionManager collision_manager = create_collision_manager(collisions);
 
-    Query query1 = Query::create("borough", QueryType::EQUALS, "Nothing should match me");
+    Query query1 = Query::create(CollisionField::BOROUGH, QueryType::EQUALS, "Nothing should match me");
     std::vector<CollisionProxy*> results1 = collision_manager.searchOpenMp(query1);
     EXPECT_EQ(results1.size(), 0);
 
-    Query query2 = Query::create("borough", QueryType::EQUALS, "BROOKLYN");
+    Query query2 = Query::create(CollisionField::BOROUGH, QueryType::EQUALS, "BROOKLYN");
     std::vector<CollisionProxy*> results2 = collision_manager.searchOpenMp(query2);
     EXPECT_EQ(results2.size(), 1);
     EXPECT_EQ(*results2[0]->borough, "BROOKLYN");
 
-    Query query3 = Query::create("borough", QueryType::EQUALS, "brooklyn", Qualifier::CASE_INSENSITIVE);
+    Query query3 = Query::create(CollisionField::BOROUGH, QueryType::EQUALS, "brooklyn", Qualifier::CASE_INSENSITIVE);
     std::vector<CollisionProxy*> results3 = collision_manager.searchOpenMp(query3);
     EXPECT_EQ(results3.size(), 1);
     EXPECT_EQ(*results3[0]->borough, "BROOKLYN");
 
 }
-
 
 TEST_F(CollisionManagerTest, MatchEqualsDate) {
     Collision collision1{};
@@ -236,7 +235,7 @@ TEST_F(CollisionManagerTest, MatchEqualsDate) {
 
     CollisionManager collision_manager = create_collision_manager(collisions);
 
-    Query query1 = Query::create("crash_date", QueryType::EQUALS, date);
+    Query query1 = Query::create(CollisionField::CRASH_DATE, QueryType::EQUALS, date);
     std::vector<CollisionProxy*> results1 = collision_manager.searchOpenMp(query1);
     EXPECT_EQ(results1.size(), 1);
 }
@@ -262,7 +261,7 @@ TEST_F(CollisionManagerTest, MatchGreaterThanDate) {
 
     CollisionManager collision_manager = create_collision_manager(collisions);
 
-    Query query = Query::create("crash_date", QueryType::GREATER_THAN, date1);
+    Query query = Query::create(CollisionField::CRASH_DATE, QueryType::GREATER_THAN, date1);
     std::vector<CollisionProxy*> results = collision_manager.searchOpenMp(query);
     EXPECT_EQ(results.size(), 1);
 }
@@ -289,7 +288,7 @@ TEST_F(CollisionManagerTest, MatchLessThanDate) {
 
     CollisionManager collision_manager = create_collision_manager(collisions);
 
-    Query query = Query::create("crash_date", QueryType::LESS_THAN, date1);
+    Query query = Query::create(CollisionField::CRASH_DATE, QueryType::LESS_THAN, date1);
     std::vector<CollisionProxy*> results = collision_manager.searchOpenMp(query);
     EXPECT_EQ(results.size(), 1);
 }
@@ -302,7 +301,7 @@ TEST_F(CollisionManagerTest, CSV_Query_MatchLessThanDate) {
         std::chrono::day{26}
     };
 
-    Query query = Query::create("crash_date", QueryType::LESS_THAN, date1);
+    Query query = Query::create(CollisionField::CRASH_DATE, QueryType::LESS_THAN, date1);
     std::vector<CollisionProxy*> results = collision_manager_m.searchOpenMp(query);
 
     EXPECT_GT(results.size(), 0) << "Search should return at least one result";
@@ -323,7 +322,7 @@ TEST_F(CollisionManagerTest, CSV_Query_MatchGreaterThanDate) {
         std::chrono::day{11}
     };
 
-    Query query = Query::create("crash_date", QueryType::GREATER_THAN, date1);
+    Query query = Query::create(CollisionField::CRASH_DATE, QueryType::GREATER_THAN, date1);
     std::vector<CollisionProxy*> results = collision_manager_m.searchOpenMp(query);
 
     EXPECT_GT(results.size(), 0) << "Search should return at least one result";
@@ -344,7 +343,7 @@ TEST_F(CollisionManagerTest, CSV_Query_MatchEqualsDate) {
         std::chrono::day{11}
     };
 
-    Query query = Query::create("crash_date", QueryType::EQUALS, date1);
+    Query query = Query::create(CollisionField::CRASH_DATE, QueryType::EQUALS, date1);
     std::vector<CollisionProxy*> results = collision_manager_m.searchOpenMp(query);
 
     EXPECT_GT(results.size(), 0) << "Search should return at least one result";
@@ -363,7 +362,7 @@ TEST_F(CollisionManagerTest, CSV_Query_MatchEqualsTime) {
         std::chrono::hours{9} + std::chrono::minutes{35}
     };
 
-    Query query = Query::create("crash_time", QueryType::EQUALS, time1);
+    Query query = Query::create(CollisionField::CRASH_TIME, QueryType::EQUALS, time1);
     std::vector<CollisionProxy*> results = collision_manager_m.searchOpenMp(query);
 
     EXPECT_GT(results.size(), 0) << "Search should return at least one result";
@@ -382,7 +381,7 @@ TEST_F(CollisionManagerTest, CSV_Query_MatchGreaterThanTime) {
         std::chrono::hours{9} + std::chrono::minutes{35}
     };
 
-    Query query = Query::create("crash_time", QueryType::GREATER_THAN, time1);
+    Query query = Query::create(CollisionField::CRASH_TIME, QueryType::GREATER_THAN, time1);
     std::vector<CollisionProxy*> results = collision_manager_m.searchOpenMp(query);
 
     EXPECT_GT(results.size(), 0) << "Search should return at least one result";
@@ -402,7 +401,7 @@ TEST_F(CollisionManagerTest, CSV_Query_MatchLessThanTime) {
         std::chrono::hours{9} + std::chrono::minutes{35}
     };
 
-    Query query = Query::create("crash_time", QueryType::LESS_THAN, time1);
+    Query query = Query::create(CollisionField::CRASH_TIME, QueryType::LESS_THAN, time1);
     std::vector<CollisionProxy*> results = collision_manager_m.searchOpenMp(query);
 
     EXPECT_GT(results.size(), 0) << "Search should return at least one result";
@@ -419,7 +418,7 @@ TEST_F(CollisionManagerTest, CSV_Query_MatchEqualLatitude) {
 
     float latitude = 40.667202f;
 
-    Query query = Query::create("latitude", QueryType::EQUALS, latitude);
+    Query query = Query::create(CollisionField::LATITUDE, QueryType::EQUALS, latitude);
     std::vector<CollisionProxy*> results = collision_manager_m.searchOpenMp(query);
 
     EXPECT_GT(results.size(), 0) << "Search should return at least one result";
@@ -438,7 +437,7 @@ TEST_F(CollisionManagerTest, CSV_Query_MatchGreaterLatitude) {
 
     float latitude = 40.667202f;
 
-    Query query = Query::create("latitude", QueryType::GREATER_THAN, latitude);
+    Query query = Query::create(CollisionField::LATITUDE, QueryType::GREATER_THAN, latitude);
     std::vector<CollisionProxy*> results = collision_manager_m.searchOpenMp(query);
 
     EXPECT_GT(results.size(), 0) << "Search should return at least one result";
@@ -457,7 +456,7 @@ TEST_F(CollisionManagerTest, CSV_Query_MatchLesserThanLatitude) {
 
     float latitude = 40.667202f;
 
-    Query query = Query::create("latitude", QueryType::LESS_THAN, latitude);
+    Query query = Query::create(CollisionField::LATITUDE, QueryType::LESS_THAN, latitude);
     std::vector<CollisionProxy*> results = collision_manager_m.searchOpenMp(query);
 
     EXPECT_GT(results.size(), 0) << "Search should return at least one result";
@@ -476,7 +475,7 @@ TEST_F(CollisionManagerTest, CSV_Query_MatchEqualsZipcode) {
 
     size_t zip_code = 11208;
 
-    Query query = Query::create("zip_code", QueryType::EQUALS, zip_code);
+    Query query = Query::create(CollisionField::ZIP_CODE, QueryType::EQUALS, zip_code);
     std::vector<CollisionProxy*> results = collision_manager_m.searchOpenMp(query);
 
     EXPECT_GT(results.size(), 0) << "Search should return at least one result";
@@ -496,7 +495,7 @@ TEST_F(CollisionManagerTest, CompoundQuery_Match_EqualsBorough_and_GreaterThanTi
         std::chrono::hours{9} + std::chrono::minutes{35}
     };
 
-    Query query1 = Query::create("borough", QueryType::EQUALS, borough).add("crash_time", QueryType::GREATER_THAN, crash_time);
+    Query query1 = Query::create(CollisionField::BOROUGH, QueryType::EQUALS, borough).add(CollisionField::CRASH_TIME, QueryType::GREATER_THAN, crash_time);
 
     std::vector<CollisionProxy*> results = collision_manager_m.searchOpenMp(query1);
 
@@ -518,7 +517,7 @@ TEST_F(CollisionManagerTest, CompoundQuery_Match_EqualsBorough_and_LesserThanTim
         std::chrono::hours{9} + std::chrono::minutes{35}
     };
 
-    Query query1 = Query::create("borough", QueryType::EQUALS, borough).add("crash_time", QueryType::LESS_THAN, crash_time);
+    Query query1 = Query::create(CollisionField::BOROUGH, QueryType::EQUALS, borough).add(CollisionField::CRASH_TIME, QueryType::LESS_THAN, crash_time);
 
     std::vector<CollisionProxy*> results = collision_manager_m.searchOpenMp(query1);
 
@@ -540,7 +539,7 @@ TEST_F(CollisionManagerTest, CompoundQuery_Match_EqualsZipCode_and_GreaterThanTi
         std::chrono::hours{9} + std::chrono::minutes{35}
     };
 
-    Query query1 = Query::create("zip_code", QueryType::EQUALS, zip_code).add("crash_time", QueryType::GREATER_THAN, crash_time);
+    Query query1 = Query::create(CollisionField::ZIP_CODE, QueryType::EQUALS, zip_code).add(CollisionField::CRASH_TIME, QueryType::GREATER_THAN, crash_time);
 
     std::vector<CollisionProxy*> results = collision_manager_m.searchOpenMp(query1);
 
@@ -562,7 +561,7 @@ TEST_F(CollisionManagerTest, CompoundQuery_Match_EqualsZipCode_and_LesserThanTim
         std::chrono::hours{16} + std::chrono::minutes{50}
     };
 
-    Query query1 = Query::create("zip_code", QueryType::EQUALS, zip_code).add("crash_time", QueryType::LESS_THAN, crash_time);
+    Query query1 = Query::create(CollisionField::ZIP_CODE, QueryType::EQUALS, zip_code).add(CollisionField::CRASH_TIME, QueryType::LESS_THAN, crash_time);
 
     std::vector<CollisionProxy*> results = collision_manager_m.searchOpenMp(query1);
 
@@ -598,11 +597,11 @@ TEST_F(CollisionManagerTest, CompoundQuery_Match_MutipleFields) {
 
     size_t persons_injured = 0;
 
-    Query query1 = Query::create("crash_date" , QueryType::GREATER_THAN, date1)
-    .add("crash_date" , QueryType::LESS_THAN, date2)
-    .add("crash_time", QueryType::GREATER_THAN, crash_time)
-    .add("borough", QueryType::EQUALS, borough)
-    .add("number_of_persons_injured", QueryType::GREATER_THAN, persons_injured);
+    Query query1 = Query::create(CollisionField::CRASH_DATE, QueryType::GREATER_THAN, date1)
+    .add(CollisionField::CRASH_DATE, QueryType::LESS_THAN, date2)
+    .add(CollisionField::CRASH_TIME, QueryType::GREATER_THAN, crash_time)
+    .add(CollisionField::BOROUGH, QueryType::EQUALS, borough)
+    .add(CollisionField::NUMBER_OF_PERSONS_INJURED, QueryType::GREATER_THAN, persons_injured);
 
     std::vector<CollisionProxy*> results = collision_manager_m.searchOpenMp(query1);
 
@@ -641,12 +640,12 @@ TEST_F(CollisionManagerTest, CompoundQuery_Match_MutipleCollisions) {
         std::chrono::day{29}
     };
 
-    Query query1 = Query::create("borough", QueryType::EQUALS, borough, Qualifier::CASE_INSENSITIVE)
-    .add("crash_date" , QueryType::GREATER_THAN, date1)
-    .add("crash_date" , QueryType::LESS_THAN, date2)
-    .add("contributing_factor_vehicle_2", QueryType::EQUALS, contributing_factor_vehicle_2)
-    .add("vehicle_type_code_1", QueryType::EQUALS, vehicle_type_code_1)
-    .add("vehicle_type_code_2", QueryType::CONTAINS, vehicle_type_code_2);
+    Query query1 = Query::create(CollisionField::BOROUGH, QueryType::EQUALS, borough, Qualifier::CASE_INSENSITIVE)
+    .add(CollisionField::CRASH_DATE, QueryType::GREATER_THAN, date1)
+    .add(CollisionField::CRASH_DATE, QueryType::LESS_THAN, date2)
+    .add(CollisionField::CONTRIBUTING_FACTOR_VEHICLE_2, QueryType::EQUALS, contributing_factor_vehicle_2)
+    .add(CollisionField::VEHICLE_TYPE_CODE_1, QueryType::EQUALS, vehicle_type_code_1)
+    .add(CollisionField::VEHICLE_TYPE_CODE_2, QueryType::CONTAINS, vehicle_type_code_2);
 
     std::vector<CollisionProxy*> results = collision_manager_m.searchOpenMp(query1);
 
@@ -666,11 +665,10 @@ TEST_F(CollisionManagerTest, CompoundQuery_Match_MutipleCollisions) {
     " . The contributing factor to the collisions is  " << contributing_factor_vehicle_2 << " . The vehicles involved are " << vehicle_type_code_1 << " and "<< vehicle_type_code_2 << std::endl;
 }
 
-
 TEST_F(CollisionManagerTest, Query_Match_VehicleType) {
 
     std::string vehicle_type_code_2 = "Station Wagon";
-    Query query1 = Query::create("vehicle_type_code_2", QueryType::CONTAINS, vehicle_type_code_2);
+    Query query1 = Query::create(CollisionField::VEHICLE_TYPE_CODE_2, QueryType::CONTAINS, vehicle_type_code_2);
 
     std::vector<CollisionProxy*> results = collision_manager_m.searchOpenMp(query1);
 
@@ -683,3 +681,4 @@ TEST_F(CollisionManagerTest, Query_Match_VehicleType) {
     std::cout << " Found " << results.size() << " with vehicle_type_code_2 containing " << vehicle_type_code_2;
 
 }
+

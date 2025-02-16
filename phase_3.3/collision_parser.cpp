@@ -1,6 +1,7 @@
 #include "collision_parser.hpp"
 
 #include "collision.hpp"
+#include "collision_field_enum.hpp"
 
 #include <chrono>
 #include <iostream>

@@ -71,65 +71,65 @@ bool do_match(const FieldQuery& query, const std::optional<T>& value) {
 }
 
 bool Collisions::match_field(const FieldQuery& query, const std::size_t index) const {
-    const std::string& name = query.get_name();
+    const CollisionField& name = query.get_name();
 
-    if (name == "crash_date") {
+    if (name == CollisionField::CRASH_DATE) {
         return do_match(query, this->crash_dates[index]);
-    } else if (name == "crash_time") {
+    } else if (name == CollisionField::CRASH_TIME) {
         return do_match(query, this->crash_times[index]);
-    } else if (name == "borough") {
+    } else if (name == CollisionField::BOROUGH) {
         return do_match(query, this->boroughs[index]);
-    } else if (name == "zip_code") {
+    } else if (name == CollisionField::ZIP_CODE) {
         return do_match(query, this->zip_codes[index]);
-    } else if (name == "latitude") {
+    } else if (name == CollisionField::LATITUDE) {
         return do_match(query, this->latitudes[index]);
-    } else if (name == "longitude") {
+    } else if (name == CollisionField::LONGITUDE) {
         return do_match(query, this->longitudes[index]);
-    } else if (name == "location") {
+    } else if (name == CollisionField::LOCATION) {
         return do_match(query, this->locations[index]);
-    } else if (name == "on_street_name") {
+    } else if (name == CollisionField::ON_STREET_NAME) {
         return do_match(query, this->on_street_names[index]);
-    } else if (name == "cross_street_name") {
+    } else if (name == CollisionField::CROSS_STREET_NAME) {
         return do_match(query, this->cross_street_names[index]);
-    } else if (name == "off_street_name") {
+    } else if (name == CollisionField::OFF_STREET_NAME) {
         return do_match(query, this->off_street_names[index]);
-    } else if (name == "number_of_persons_injured") {
+    } else if (name == CollisionField::NUMBER_OF_PERSONS_INJURED) {
         return do_match(query, this->numbers_of_persons_injured[index]);
-    } else if (name == "number_of_persons_killed") {
+    } else if (name == CollisionField::NUMBER_OF_PERSONS_KILLED) {
         return do_match(query, this->numbers_of_persons_killed[index]);
-    } else if (name == "number_of_pedestrians_injured") {
+    } else if (name == CollisionField::NUMBER_OF_PEDESTRIANS_INJURED) {
         return do_match(query, this->numbers_of_pedestrians_injured[index]);
-    } else if (name == "number_of_pedestrians_killed") {
+    } else if (name == CollisionField::NUMBER_OF_PEDESTRIANS_KILLED) {
         return do_match(query, this->numbers_of_pedestrians_killed[index]);
-    } else if (name == "number_of_cyclist_injured") {
+    } else if (name == CollisionField::NUMBER_OF_CYCLIST_INJURED) {
         return do_match(query, this->numbers_of_cyclist_injured[index]);
-    } else if (name == "number_of_cyclist_killed") {
+    } else if (name == CollisionField::NUMBER_OF_CYCLIST_KILLED) {
         return do_match(query, this->numbers_of_cyclist_killed[index]);
-    } else if (name == "number_of_motorist_injured") {
+    } else if (name == CollisionField::NUMBER_OF_MOTORIST_INJURED) {
         return do_match(query, this->numbers_of_motorist_injured[index]);
-    } else if (name == "number_of_motorist_killed") {
+    } else if (name == CollisionField::NUMBER_OF_MOTORIST_KILLED) {
         return do_match(query, this->numbers_of_motorist_killed[index]);
-    } else if (name == "contributing_factor_vehicle_1") {
+    } else if (name == CollisionField::CONTRIBUTING_FACTOR_VEHICLE_1) {
         return do_match(query, this->contributing_factor_vehicles_1[index]);
-    } else if (name == "contributing_factor_vehicle_2") {
+    } else if (name == CollisionField::CONTRIBUTING_FACTOR_VEHICLE_2) {
         return do_match(query, this->contributing_factor_vehicles_2[index]);
-    } else if (name == "contributing_factor_vehicle_3") {
+    } else if (name == CollisionField::CONTRIBUTING_FACTOR_VEHICLE_3) {
         return do_match(query, this->contributing_factor_vehicles_3[index]);
-    } else if (name == "contributing_factor_vehicle_4") {
+    } else if (name == CollisionField::CONTRIBUTING_FACTOR_VEHICLE_4) {
         return do_match(query, this->contributing_factor_vehicles_4[index]);
-    } else if (name == "contributing_factor_vehicle_5") {
+    } else if (name == CollisionField::CONTRIBUTING_FACTOR_VEHICLE_5) {
         return do_match(query, this->contributing_factor_vehicles_5[index]);
-    } else if (name == "collision_id") {
+    } else if (name == CollisionField::COLLISION_ID) {
         return do_match(query, this->collision_ids[index]);
-    } else if (name == "vehicle_type_code_1") {
+    } else if (name == CollisionField::VEHICLE_TYPE_CODE_1) {
         return do_match(query, this->vehicle_type_codes_1[index]);
-    } else if (name == "vehicle_type_code_2") {
+    } else if (name == CollisionField::VEHICLE_TYPE_CODE_2) {
         return do_match(query, this->vehicle_type_codes_2[index]);
-    } else if (name == "vehicle_type_code_3") {
+    } else if (name == CollisionField::VEHICLE_TYPE_CODE_3) {
         return do_match(query, this->vehicle_type_codes_3[index]);
-    } else if (name == "vehicle_type_code_4") {
+    } else if (name == CollisionField::VEHICLE_TYPE_CODE_4) {
         return do_match(query, this->vehicle_type_codes_4[index]);
-    } else if (name == "vehicle_type_code_5") {
+    } else if (name == CollisionField::VEHICLE_TYPE_CODE_5) {
         return do_match(query, this->vehicle_type_codes_5[index]);
     }
 

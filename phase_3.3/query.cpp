@@ -1,11 +1,12 @@
 #include "query.hpp"
 
+#include "collision_field_enum.hpp"
+
 #include <chrono>
 #include <stdexcept>
 #include <string>
-#include <string_view>
 
-const std::string& FieldQuery::get_name() const {
+const CollisionField& FieldQuery::get_name() const {
     return name_;
 }
 
@@ -25,7 +26,7 @@ const bool FieldQuery::case_insensitive() const {
     return case_insensitive_;
 }
 
-FieldQuery Query::create_field_query(const std::string_view& name,
+FieldQuery Query::create_field_query(const CollisionField& name,
                                      const Qualifier& not_qualifier,
                                      const QueryType& type,
                                      const Value value,
@@ -34,39 +35,39 @@ FieldQuery Query::create_field_query(const std::string_view& name,
         using T = std::decay_t<decltype(val)>;
 
         if constexpr (std::is_same_v<T, float>) {
-            if (name != "latitude" && name != "longitude") {
+            if (name != CollisionField::LATITUDE && name != CollisionField::LONGITUDE) {
                 throw std::invalid_argument("Invalid field_name provided for float!");
             }
         } else if constexpr (std::is_same_v<T, std::size_t>) {
-            if (name != "zip_code" && name != "number_of_persons_injured" &&
-                name != "number_of_persons_killed" && name != "number_of_pedestrians_injured" &&
-                name != "number_of_pedestrians_killed" && name != "number_of_cyclist_injured" &&
-                name != "number_of_cyclist_killed" && name != "number_of_motorist_injured" &&
-                name != "number_of_motorist_killed" && name != "collision_id") {
+            if (name != CollisionField::ZIP_CODE && name != CollisionField::NUMBER_OF_PERSONS_INJURED &&
+                name != CollisionField::NUMBER_OF_PERSONS_KILLED && name != CollisionField::NUMBER_OF_PEDESTRIANS_INJURED &&
+                name != CollisionField::NUMBER_OF_PEDESTRIANS_KILLED && name != CollisionField::NUMBER_OF_CYCLIST_INJURED &&
+                name != CollisionField::NUMBER_OF_CYCLIST_KILLED && name != CollisionField::NUMBER_OF_MOTORIST_INJURED &&
+                name != CollisionField::NUMBER_OF_MOTORIST_KILLED && name != CollisionField::COLLISION_ID) {
                 throw std::invalid_argument("Invalid field_name provided for std::size_t!");
             }
         } else if constexpr (std::is_same_v<T, std::string>) {
-            if (name != "borough" && name != "location" && name != "on_street_name" &&
-                name != "cross_street_name" && name != "off_street_name" &&
-                name != "contributing_factor_vehicle_1" && name != "contributing_factor_vehicle_2" &&
-                name != "contributing_factor_vehicle_3" && name != "contributing_factor_vehicle_4" &&
-                name != "contributing_factor_vehicle_5" && name != "vehicle_type_code_1" &&
-                name != "vehicle_type_code_2" && name != "vehicle_type_code_3" &&
-                name != "vehicle_type_code_4" && name != "vehicle_type_code_5") {
+            if (name != CollisionField::BOROUGH && name != CollisionField::LOCATION && name != CollisionField::ON_STREET_NAME &&
+                name != CollisionField::CROSS_STREET_NAME && name != CollisionField::OFF_STREET_NAME &&
+                name != CollisionField::CONTRIBUTING_FACTOR_VEHICLE_1 && name != CollisionField::CONTRIBUTING_FACTOR_VEHICLE_2 &&
+                name != CollisionField::CONTRIBUTING_FACTOR_VEHICLE_3 && name != CollisionField::CONTRIBUTING_FACTOR_VEHICLE_4 &&
+                name != CollisionField::CONTRIBUTING_FACTOR_VEHICLE_5 && name != CollisionField::VEHICLE_TYPE_CODE_1 &&
+                name != CollisionField::VEHICLE_TYPE_CODE_2 && name != CollisionField::VEHICLE_TYPE_CODE_3 &&
+                name != CollisionField::VEHICLE_TYPE_CODE_4 && name != CollisionField::VEHICLE_TYPE_CODE_5) {
                 throw std::invalid_argument("Invalid field_name provided for std::string!");
             }
         } else if constexpr (std::is_same_v<T, std::chrono::year_month_day>) {
-            if (name != "crash_date") {
+            if (name != CollisionField::CRASH_DATE) {
                 throw std::invalid_argument("Invalid field_name provided for std::chrono::year_month_day!");
             }
         } else if constexpr (std::is_same_v<T, std::chrono::hh_mm_ss<std::chrono::minutes>>) {
-            if (name != "crash_time") {
+            if (name != CollisionField::CRASH_TIME) {
                 throw std::invalid_argument("Invalid field_name provided for std::chrono::hh_mm_ss!");
             }
         }
     }, value);
 
-    return FieldQuery(std::string(name),
+    return FieldQuery(name,
                       type,
                       value,
                       not_qualifier == Qualifier::NOT,
@@ -77,20 +78,20 @@ const std::vector<FieldQuery>& Query::get() const {
     return queries;
 }
 
-Query& Query::add(const std::string_view& name, const QueryType& type, const Value value) {
+Query& Query::add(const CollisionField& name, const QueryType& type, const Value value) {
     return add(name, Qualifier::NONE, type, value, Qualifier::NONE);
 }
 
-Query& Query::add(const std::string_view& name, const Qualifier& not_qualifier, const QueryType& type, const Value value) {
+Query& Query::add(const CollisionField& name, const Qualifier& not_qualifier, const QueryType& type, const Value value) {
     return add(name, not_qualifier, type, value, Qualifier::NONE);
 }
 
-Query& Query::add(const std::string_view& name, const QueryType& type, const Value value, const Qualifier& case_insensitive_qualifier) {
+Query& Query::add(const CollisionField& name, const QueryType& type, const Value value, const Qualifier& case_insensitive_qualifier) {
     return add(name, Qualifier::NONE, type, value, case_insensitive_qualifier);
 }
 
-Query& Query::add(const std::string_view& name, const Qualifier& not_qualifier, const QueryType& type, const Value value, const Qualifier& case_insensitive_qualifier) {
-    queries.push_back(create_field_query(std::string(name),
+Query& Query::add(const CollisionField& name, const Qualifier& not_qualifier, const QueryType& type, const Value value, const Qualifier& case_insensitive_qualifier) {
+    queries.push_back(create_field_query(name,
                                          not_qualifier,
                                          type,
                                          value,
@@ -98,20 +99,20 @@ Query& Query::add(const std::string_view& name, const Qualifier& not_qualifier, 
     return *this;
 }
 
-Query Query::create(const std::string_view& name, const QueryType& type, const Value value) {
+Query Query::create(const CollisionField& name, const QueryType& type, const Value value) {
     return create(name, Qualifier::NONE, type, value, Qualifier::NONE);
 }
 
-Query Query::create(const std::string_view& name, const Qualifier& not_qualifier, const QueryType& type, const Value value) {
+Query Query::create(const CollisionField& name, const Qualifier& not_qualifier, const QueryType& type, const Value value) {
     return create(name, not_qualifier, type, value, Qualifier::NONE);
 }
 
-Query Query::create(const std::string_view& name, const QueryType& type, const Value value, const Qualifier& case_insensitive_qualifier) {
+Query Query::create(const CollisionField& name, const QueryType& type, const Value value, const Qualifier& case_insensitive_qualifier) {
     return create(name, Qualifier::NONE, type, value, case_insensitive_qualifier);
 }
 
-Query Query::create(const std::string_view& name, const Qualifier& not_qualifier, const QueryType& type, const Value value, const Qualifier& case_insensitive_qualifier) {
-    return Query(create_field_query(std::string(name),
+Query Query::create(const CollisionField& name, const Qualifier& not_qualifier, const QueryType& type, const Value value, const Qualifier& case_insensitive_qualifier) {
+    return Query(create_field_query(name,
                                     not_qualifier,
                                     type,
                                     value,
