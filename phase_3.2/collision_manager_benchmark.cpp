@@ -21,7 +21,7 @@ BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchSingleStringFieldNoMatches)(
     Query query = Query::create("borough", QueryType::EQUALS, "Nothing should match me");
 
     for (auto _ : state) {
-        std::vector<CollisionProxy> results = collision_manager->searchOpenMp(query);
+        std::vector<CollisionProxy*> results = collision_manager->searchOpenMp(query);
         benchmark::DoNotOptimize(results);
     }
 }
@@ -30,7 +30,7 @@ BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchSingleStringFieldSomeMatches
     Query query = Query::create("borough", QueryType::EQUALS, "BROOKLYN");
 
     for (auto _ : state) {
-        std::vector<CollisionProxy> results = collision_manager->searchOpenMp(query);
+        std::vector<CollisionProxy*> results = collision_manager->searchOpenMp(query);
         benchmark::DoNotOptimize(results);
     }
 }
@@ -39,7 +39,7 @@ BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchSingleSizeTFieldNoMatches)(b
     Query query = Query::create("zip_code", QueryType::EQUALS, std::numeric_limits<size_t>::max());
 
     for (auto _ : state) {
-        std::vector<CollisionProxy> results = collision_manager->searchOpenMp(query);
+        std::vector<CollisionProxy*> results = collision_manager->searchOpenMp(query);
         benchmark::DoNotOptimize(results);
     }
 }
@@ -48,7 +48,7 @@ BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchSingleSizeTFieldSomeMatches)
     Query query = Query::create("zip_code", QueryType::EQUALS, 11208ULL);
 
     for (auto _ : state) {
-        std::vector<CollisionProxy> results = collision_manager->searchOpenMp(query);
+        std::vector<CollisionProxy*> results = collision_manager->searchOpenMp(query);
         benchmark::DoNotOptimize(results);
     }
 }
@@ -58,7 +58,7 @@ BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchLatitudeSomeMatches)(benchma
     Query query = Query::create("latitude", QueryType::EQUALS, latitude);
 
     for(auto _ : state) {
-        std::vector<CollisionProxy> results = collision_manager->searchOpenMp(query);
+        std::vector<CollisionProxy*> results = collision_manager->searchOpenMp(query);
         benchmark::DoNotOptimize(results);
     }
 }
@@ -68,7 +68,7 @@ BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchLesserThanLatitudeSomeMatche
     Query query = Query::create("latitude", QueryType::LESS_THAN, latitude);
 
     for(auto _ : state) {
-        std::vector<CollisionProxy> results = collision_manager->searchOpenMp(query);
+        std::vector<CollisionProxy*> results = collision_manager->searchOpenMp(query);
         benchmark::DoNotOptimize(results);
     }
 }
@@ -78,7 +78,7 @@ BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchGreaterThanLatitudeSomeMatch
     Query query = Query::create("latitude", QueryType::GREATER_THAN, latitude);
 
     for(auto _ : state) {
-        std::vector<CollisionProxy> results = collision_manager->searchOpenMp(query);
+        std::vector<CollisionProxy*> results = collision_manager->searchOpenMp(query);
         benchmark::DoNotOptimize(results);
     }
 }
@@ -88,7 +88,7 @@ BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchLongitudeSomeMatches)(benchm
     Query query = Query::create("latitude", QueryType::EQUALS, longitude);
 
     for(auto _ : state) {
-        std::vector<CollisionProxy> results = collision_manager->searchOpenMp(query);
+        std::vector<CollisionProxy*> results = collision_manager->searchOpenMp(query);
         benchmark::DoNotOptimize(results);
     }
 }
@@ -98,7 +98,7 @@ BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchLesserThanLongitudeSomeMatch
     Query query = Query::create("latitude", QueryType::LESS_THAN, longitude);
 
     for(auto _ : state) {
-        std::vector<CollisionProxy> results = collision_manager->searchOpenMp(query);
+        std::vector<CollisionProxy*> results = collision_manager->searchOpenMp(query);
         benchmark::DoNotOptimize(results);
     }
 }
@@ -108,7 +108,7 @@ BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchGreaterThanLongitudeSomeMatc
     Query query = Query::create("latitude", QueryType::GREATER_THAN, longitude);
 
     for(auto _ : state) {
-        std::vector<CollisionProxy> results = collision_manager->searchOpenMp(query);
+        std::vector<CollisionProxy*> results = collision_manager->searchOpenMp(query);
         benchmark::DoNotOptimize(results);
     }
 }
@@ -119,7 +119,7 @@ BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchBorough_LessThanLatitudeSome
     Query query = Query::create("latitude", QueryType::LESS_THAN, latitude).add("borough", QueryType::EQUALS, "BROOKLYN");
 
     for(auto _ : state) {
-        std::vector<CollisionProxy> results = collision_manager->searchOpenMp(query);
+        std::vector<CollisionProxy*> results = collision_manager->searchOpenMp(query);
         benchmark::DoNotOptimize(results);
     }
 }
@@ -133,7 +133,7 @@ BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchRangeofCoordinatesSomeMatche
                       .add("longitude", QueryType::LESS_THAN, longitude);
 
     for(auto _ : state) {
-        std::vector<CollisionProxy> results = collision_manager->searchOpenMp(query);
+        std::vector<CollisionProxy*> results = collision_manager->searchOpenMp(query);
         benchmark::DoNotOptimize(results);
     }
 }
@@ -148,7 +148,7 @@ BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchDatesEqualsSomeMatches)(benc
     Query query = Query::create("crash_date", QueryType::EQUALS, date1);
 
     for(auto _ : state) {
-        std::vector<CollisionProxy> results = collision_manager->searchOpenMp(query);
+        std::vector<CollisionProxy*> results = collision_manager->searchOpenMp(query);
         benchmark::DoNotOptimize(results);
     }
 }
@@ -170,7 +170,7 @@ BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchDatesRangeSomeMatches)(bench
     Query query = Query::create("crash_date", QueryType::GREATER_THAN, date1).add("crash_date", QueryType::LESS_THAN, date2);
 
     for(auto _ : state) {
-        std::vector<CollisionProxy> results = collision_manager->searchOpenMp(query);
+        std::vector<CollisionProxy*> results = collision_manager->searchOpenMp(query);
         benchmark::DoNotOptimize(results);
     }
 }
@@ -202,7 +202,7 @@ BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchRangeofCoordinates_DateRange
                       .add("crash_date", QueryType::LESS_THAN, date2);
 
     for(auto _ : state) {
-        std::vector<CollisionProxy> results = collision_manager->searchOpenMp(query);
+        std::vector<CollisionProxy*> results = collision_manager->searchOpenMp(query);
         benchmark::DoNotOptimize(results);
     }
 }
