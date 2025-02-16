@@ -83,6 +83,16 @@ target_link_libraries(
   benchmark::benchmark_main
 )
 
+add_executable(
+  collision_parser_benchmark
+  collision_parser_benchmark.cpp
+)
+target_link_libraries(
+  collision_parser_benchmark
+  collision_manager
+  benchmark::benchmark_main
+)
+
 enable_testing()
 
 include(GoogleTest)

@@ -6,6 +6,7 @@
 #include <iostream>
 #include <format>
 #include <fstream>
+#include <omp.h>
 #include <string>
 #include <string_view>
 
@@ -85,7 +86,7 @@ std::optional<T> convert_number(const std::string_view& field) {
     return number;
 }
 
-Collision parseline(const std::string& line) {
+void parseline(const std::string& line, Collisions& collisions) {
 
     bool is_inside_quote = false;
     std::size_t count = 0;
@@ -219,9 +220,10 @@ Collision parseline(const std::string& line) {
 
     if (field_index != 28) {
         std::cerr << "Too few fields on csv line: " << line << std::endl;
+        return;
     }
 
-    return collision;
+    collisions.add(collision);
 }
 
 }  // namespace
@@ -229,7 +231,7 @@ Collision parseline(const std::string& line) {
 CollisionParser::CollisionParser(const std::string& filename)
   : filename(filename) {}
 
-std::vector<Collision> CollisionParser::parse() {
+Collisions CollisionParser::parse() {
     std::ifstream file{std::string(this->filename)};
 
     if (!file.is_open()) {
@@ -237,7 +239,7 @@ std::vector<Collision> CollisionParser::parse() {
     }
 
     std::string line;
-    std::vector<Collision> collisions;
+    std::vector<std::string> lines;
 
     bool is_first_line = true;
     while (std::getline(file, line)) {
@@ -246,8 +248,22 @@ std::vector<Collision> CollisionParser::parse() {
             continue;
         }
 
-        Collision collision = parseline(line);
-        collisions.push_back(collision);
+        lines.push_back(line);
+    }
+
+    Collisions collisions{};
+
+    unsigned long num_threads = omp_get_max_threads();
+    std::vector<Collisions> thread_local_collisions{num_threads};
+
+    #pragma omp parallel for schedule(static)
+    for (const std::string& line : lines) {
+        int thread_id = omp_get_thread_num();
+        parseline(line, thread_local_collisions[thread_id]);
+    }
+
+    for (const auto& thread_collisions : thread_local_collisions) {
+        collisions.combine(thread_collisions);
     }
 
     return collisions;
