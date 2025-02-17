@@ -38,7 +38,7 @@ BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchSingleStringFieldSomeMatches
 }
 
 BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchSingleSizeTFieldNoMatches)(benchmark::State& state) {
-    Query query = Query::create(CollisionField::ZIP_CODE, QueryType::EQUALS, std::numeric_limits<size_t>::max());
+    Query query = Query::create(CollisionField::ZIP_CODE, QueryType::EQUALS, std::numeric_limits<uint32_t>::max());
 
     for (auto _ : state) {
         std::vector<CollisionProxy*> results = collision_manager->searchOpenMp(query);
@@ -47,7 +47,7 @@ BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchSingleSizeTFieldNoMatches)(b
 }
 
 BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchSingleSizeTFieldSomeMatches)(benchmark::State& state) {
-    Query query = Query::create(CollisionField::ZIP_CODE, QueryType::EQUALS, 11208ULL);
+    Query query = Query::create(CollisionField::ZIP_CODE, QueryType::EQUALS, std::uint32_t{11208});
 
     for (auto _ : state) {
         std::vector<CollisionProxy*> results = collision_manager->searchOpenMp(query);
