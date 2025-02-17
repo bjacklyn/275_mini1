@@ -107,7 +107,7 @@ struct Collisions {
     void match(const FieldQuery& query,
                const std::size_t start_index,
                const std::size_t end_index,
-               std::vector<bool>& matches) const;
+               std::vector<std::uint8_t>& matches) const;
 
     void add(const Collision& collision);
     void combine(const Collisions& other);

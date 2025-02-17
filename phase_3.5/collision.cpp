@@ -75,7 +75,7 @@ void match_field(const FieldQuery& query,
                  const std::size_t start_index,
                  const std::size_t end_index,
                  const std::vector<T>& items,
-                 std::vector<bool>& matches) {
+                 std::vector<std::uint8_t>& matches) {
     for (std::size_t index = 0; index < matches.size(); ++index) {
         if (matches[index]) {
             bool match = do_match(query, items[start_index + index]);
@@ -88,7 +88,7 @@ void match_field(const FieldQuery& query,
 void Collisions::match(const FieldQuery& query,
                        const std::size_t start_index,
                        const std::size_t end_index,
-                       std::vector<bool>& matches) const {
+                       std::vector<std::uint8_t>& matches) const {
     const CollisionField& name = query.get_name();
 
     if (name == CollisionField::CRASH_DATE) {

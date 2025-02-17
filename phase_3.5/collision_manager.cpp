@@ -103,7 +103,7 @@ const std::vector<CollisionProxy*> CollisionManager::searchOpenMp(const Query& q
         int end_index = (thread_id == num_threads - 1) ? collisions_.size() : start_index + chunk_size;
 
         // Initialize all matches to true initialially
-        std::vector<bool> matches(end_index - start_index, true);
+        std::vector<std::uint8_t> matches(end_index - start_index, true);
 
         for (const FieldQuery& field_query : field_queries) {
             collisions_.match(field_query, start_index, end_index, matches);
