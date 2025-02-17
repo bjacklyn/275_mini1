@@ -84,17 +84,35 @@ void CollisionManager::create_proxies() {
     std::cout << "Collisions Proxies size: " << collision_proxies_.size() << std::endl;
 }
 
+
+
 const std::vector<CollisionProxy*> CollisionManager::searchOpenMp(const Query& query) {
+    const std::vector<FieldQuery>& field_queries = query.get();
     std::vector<CollisionProxy*> results;
 
     unsigned long num_threads = omp_get_max_threads();
     std::vector<std::vector<CollisionProxy*>> thread_local_results(num_threads);
 
-    #pragma omp parallel for schedule(static)
-    for (std::size_t index = 0; index < collisions_.size(); ++index) {
-        if (collisions_.match(query, index)) {
-            int thread_id = omp_get_thread_num();
-            thread_local_results[thread_id].push_back(&collision_proxies_.at(index));
+    #pragma omp parallel
+    {
+        int thread_id = omp_get_thread_num();
+        int num_threads = omp_get_num_threads();
+
+        int chunk_size = collisions_.size() / num_threads;
+        int start_index = thread_id * chunk_size;
+        int end_index = (thread_id == num_threads - 1) ? collisions_.size() : start_index + chunk_size;
+
+        // Initialize all matches to true initialially
+        std::vector<bool> matches(end_index - start_index, true);
+
+        for (const FieldQuery& field_query : field_queries) {
+            collisions_.match(field_query, start_index, end_index, matches);
+        }
+
+        for (std::size_t index = 0; index < matches.size(); ++index) {
+            if (matches[index]) {
+                thread_local_results[thread_id].push_back(&collision_proxies_.at(start_index + index));
+            }
         }
     }
 
