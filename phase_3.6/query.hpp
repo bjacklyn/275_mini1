@@ -7,7 +7,7 @@
 #include <string>
 #include <string_view>
 
-using Value = std::variant<float, size_t, std::string, std::chrono::year_month_day, std::chrono::hh_mm_ss<std::chrono::minutes>>;
+using Value = std::variant<float, size_t, std::string, std::chrono::year_month_day, std::chrono::hh_mm_ss<std::chrono::minutes>, std::uint8_t, std::uint32_t>;
 
 enum class QueryType { HAS_VALUE, EQUALS, LESS_THAN, GREATER_THAN, CONTAINS };
 enum class Qualifier { NONE, NOT, CASE_INSENSITIVE };

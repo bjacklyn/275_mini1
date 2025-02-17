@@ -3,6 +3,8 @@
 #include <benchmark/benchmark.h>
 #include <limits>
 
+const static std::size_t NUM_ITERATIONS = 200;
+
 static std::unique_ptr<CollisionManager> collision_manager;
 
 class CollisionManagerBenchmark : public benchmark::Fixture
@@ -207,20 +209,20 @@ BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchRangeofCoordinates_DateRange
     }
 }
 
-BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchSingleStringFieldNoMatches)->Iterations(50);
-BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchSingleStringFieldSomeMatches)->Iterations(50);
-BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchSingleSizeTFieldNoMatches)->Iterations(50);
-BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchSingleSizeTFieldSomeMatches)->Iterations(50);
-BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchLatitudeSomeMatches)->Iterations(50);
-BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchLongitudeSomeMatches)->Iterations(50);
-BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchLesserThanLatitudeSomeMatches)->Iterations(50);
-BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchGreaterThanLatitudeSomeMatches)->Iterations(50);
-BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchLesserThanLongitudeSomeMatches)->Iterations(50);
-BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchGreaterThanLongitudeSomeMatches)->Iterations(50);
-BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchBorough_LessThanLatitudeSomeMatches)->Iterations(50);
-BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchRangeofCoordinatesSomeMatches)->Iterations(50);
-BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchDatesEqualsSomeMatches)->Iterations(50);
-BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchDatesRangeSomeMatches)->Iterations(50);
-BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchRangeofCoordinates_DateRangeSomeMatches)->Iterations(50);
+BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchSingleStringFieldNoMatches)->Iterations(NUM_ITERATIONS);
+BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchSingleStringFieldSomeMatches)->Iterations(NUM_ITERATIONS);
+BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchSingleSizeTFieldNoMatches)->Iterations(NUM_ITERATIONS);
+BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchSingleSizeTFieldSomeMatches)->Iterations(NUM_ITERATIONS);
+BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchLatitudeSomeMatches)->Iterations(NUM_ITERATIONS);
+BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchLongitudeSomeMatches)->Iterations(NUM_ITERATIONS);
+BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchLesserThanLatitudeSomeMatches)->Iterations(NUM_ITERATIONS);
+BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchGreaterThanLatitudeSomeMatches)->Iterations(NUM_ITERATIONS);
+BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchLesserThanLongitudeSomeMatches)->Iterations(NUM_ITERATIONS);
+BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchGreaterThanLongitudeSomeMatches)->Iterations(NUM_ITERATIONS);
+BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchBorough_LessThanLatitudeSomeMatches)->Iterations(NUM_ITERATIONS);
+BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchRangeofCoordinatesSomeMatches)->Iterations(NUM_ITERATIONS);
+BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchDatesEqualsSomeMatches)->Iterations(NUM_ITERATIONS);
+BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchDatesRangeSomeMatches)->Iterations(NUM_ITERATIONS);
+BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchRangeofCoordinates_DateRangeSomeMatches)->Iterations(NUM_ITERATIONS);
 
 BENCHMARK_MAIN();

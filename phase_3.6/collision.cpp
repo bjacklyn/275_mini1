@@ -21,7 +21,8 @@ bool do_match(const FieldQuery& query, const std::optional<T>& value) {
 
     const T& query_value = std::get<T>(query.get_value());
 
-    if constexpr (std::is_same_v<float, T> || std::is_same_v<std::size_t, T> || std::is_same_v<std::chrono::year_month_day, T>) {
+    if constexpr (std::is_same_v<float, T> || std::is_same_v<std::size_t, T> || std::is_same_v<std::chrono::year_month_day, T> ||
+                  std::is_same_v<std::uint8_t, T> || std::is_same_v<std::uint32_t, T>) {
         switch(type) {
         case QueryType::EQUALS:
             return *value == query_value;
@@ -31,7 +32,7 @@ bool do_match(const FieldQuery& query, const std::optional<T>& value) {
             return *value > query_value;
         case QueryType::CONTAINS:
         default:
-            throw std::runtime_error("Unsupported QueryType for float/std::size_t/std::chrono::year_month_day");
+            throw std::runtime_error("Unsupported QueryType for float/std::size_t/std::chrono::year_month_day/std::uint8_t/std::uint32_t");
         }
     } else if constexpr (std::is_same_v<std::chrono::hh_mm_ss<std::chrono::minutes>, T>) {
         switch(type) {
@@ -64,7 +65,7 @@ bool do_match(const FieldQuery& query, const std::optional<T>& value) {
             throw std::runtime_error("Unsupported QueryType for std::string");
         }
     } else {
-        static_assert(false, "Unsupported type, Only float, std::size_t, std::string, std::chrono::year_month_day, and std::chrono::hh_mm_ss types are allowed.");
+        static_assert(false, "Unsupported type, Only float, std::size_t, std::string, std::chrono::year_month_day, and std::chrono::hh_mm_ss, std::uint8_t, std::uint32_t types are allowed.");
     }
 
     return false;

@@ -473,7 +473,7 @@ TEST_F(CollisionManagerTest, CSV_Query_MatchLesserThanLatitude) {
 
 TEST_F(CollisionManagerTest, CSV_Query_MatchEqualsZipcode) {
 
-    size_t zip_code = 11208;
+    uint32_t zip_code = 11208;
 
     Query query = Query::create(CollisionField::ZIP_CODE, QueryType::EQUALS, zip_code);
     std::vector<CollisionProxy*> results = collision_manager_m.searchOpenMp(query);
@@ -534,7 +534,7 @@ TEST_F(CollisionManagerTest, CompoundQuery_Match_EqualsBorough_and_LesserThanTim
 
 TEST_F(CollisionManagerTest, CompoundQuery_Match_EqualsZipCode_and_GreaterThanTime) {
 
-    size_t zip_code = 11208;
+    uint32_t zip_code = 11208;
     std::chrono::hh_mm_ss<std::chrono::minutes> crash_time{
         std::chrono::hours{9} + std::chrono::minutes{35}
     };
@@ -556,7 +556,7 @@ TEST_F(CollisionManagerTest, CompoundQuery_Match_EqualsZipCode_and_GreaterThanTi
 
 TEST_F(CollisionManagerTest, CompoundQuery_Match_EqualsZipCode_and_LesserThanTime) {
 
-    size_t zip_code = 11434;
+    uint32_t zip_code = 11434;
     std::chrono::hh_mm_ss<std::chrono::minutes> crash_time{
         std::chrono::hours{16} + std::chrono::minutes{50}
     };
@@ -595,7 +595,7 @@ TEST_F(CollisionManagerTest, CompoundQuery_Match_MutipleFields) {
 
     std::string borough = "MANHATTAN";
 
-    size_t persons_injured = 0;
+    uint8_t persons_injured = 0;
 
     Query query1 = Query::create(CollisionField::CRASH_DATE, QueryType::GREATER_THAN, date1)
     .add(CollisionField::CRASH_DATE, QueryType::LESS_THAN, date2)

@@ -38,12 +38,19 @@ FieldQuery Query::create_field_query(const CollisionField& name,
             if (name != CollisionField::LATITUDE && name != CollisionField::LONGITUDE) {
                 throw std::invalid_argument("Invalid field_name provided for float!");
             }
+        } else if constexpr (std::is_same_v<T, std::uint8_t>) {
+            if (name != CollisionField::NUMBER_OF_PERSONS_INJURED && name != CollisionField::NUMBER_OF_PERSONS_KILLED &&
+                name != CollisionField::NUMBER_OF_PEDESTRIANS_INJURED && name != CollisionField::NUMBER_OF_PEDESTRIANS_KILLED &&
+                name != CollisionField::NUMBER_OF_CYCLIST_INJURED && name != CollisionField::NUMBER_OF_CYCLIST_KILLED &&
+                name != CollisionField::NUMBER_OF_MOTORIST_INJURED && name != CollisionField::NUMBER_OF_MOTORIST_KILLED) {
+                throw std::invalid_argument("Invalid field_name provided for std::uint8_t!");
+            }
+        } else if constexpr (std::is_same_v<T, std::uint32_t>) {
+            if (name != CollisionField::ZIP_CODE) {
+                throw std::invalid_argument("Invalid field_name provided for std::uint32_t!");
+            }
         } else if constexpr (std::is_same_v<T, std::size_t>) {
-            if (name != CollisionField::ZIP_CODE && name != CollisionField::NUMBER_OF_PERSONS_INJURED &&
-                name != CollisionField::NUMBER_OF_PERSONS_KILLED && name != CollisionField::NUMBER_OF_PEDESTRIANS_INJURED &&
-                name != CollisionField::NUMBER_OF_PEDESTRIANS_KILLED && name != CollisionField::NUMBER_OF_CYCLIST_INJURED &&
-                name != CollisionField::NUMBER_OF_CYCLIST_KILLED && name != CollisionField::NUMBER_OF_MOTORIST_INJURED &&
-                name != CollisionField::NUMBER_OF_MOTORIST_KILLED && name != CollisionField::COLLISION_ID) {
+            if (name != CollisionField::COLLISION_ID) {
                 throw std::invalid_argument("Invalid field_name provided for std::size_t!");
             }
         } else if constexpr (std::is_same_v<T, std::string>) {
