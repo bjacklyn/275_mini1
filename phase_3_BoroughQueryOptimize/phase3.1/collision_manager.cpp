@@ -110,7 +110,7 @@ void CollisionManager::fetch_collisions(std:: string borough){
     /*for (Collision& col : results){
         std::cout << col << std::endl;
     }*/
-    std::cout << "fetch_collisions_selective" << results.size() << std::endl ;
+    //std::cout << "fetch_collisions_selective" << results.size() << std::endl ;
 
 }
 

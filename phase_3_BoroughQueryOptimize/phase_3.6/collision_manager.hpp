@@ -17,8 +17,8 @@ public:
 
     void print_bucket();
     void fetch_collisions(std:: string borough);
-    void fetch_collisions_parallel(std::string borough);
-    void fetch_collisions_ondemand_construct(std:: string borough);
+    //void fetch_collisions_parallel(std::string borough);
+    //void fetch_collisions_ondemand_construct(std:: string borough);
 
 
 
