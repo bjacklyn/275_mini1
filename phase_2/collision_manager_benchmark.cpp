@@ -127,10 +127,14 @@ BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchBorough_LessThanLatitudeSome
 BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchRangeofCoordinatesSomeMatches)(benchmark::State& state) {
     float latitude = 40.63165f;
     float longitude = -73.88505f;
-    Query query = Query::create("latitude", QueryType::GREATER_THAN, latitude)
-                      .add("latitude", QueryType::LESS_THAN, latitude)
-                      .add("longitude", QueryType::GREATER_THAN, longitude)
-                      .add("longitude", QueryType::LESS_THAN, longitude);
+
+ // The range we're searching
+    float epsilon = 0.01f; // approximately 1 km radius
+
+    Query query = Query::create("latitude", QueryType::GREATER_THAN, latitude - epsilon)
+                      .add("latitude", QueryType::LESS_THAN, latitude + epsilon)
+                      .add("longitude", QueryType::GREATER_THAN, longitude - epsilon)
+                      .add("longitude", QueryType::LESS_THAN, longitude + epsilon);
 
     for(auto _ : state) {
         std::vector<const Collision*> results = collision_manager->searchOpenMp(query);
