@@ -712,17 +712,17 @@ TEST_F(CollisionManagerTest, CompoundQuery_MatchRangeofCoordinates_Date) {
     .add("crash_date" , QueryType::LESS_THAN, date2)
     .add("borough", QueryType::EQUALS, borough);
 
-    std::vector<const Collision*> results = collision_manager_m.searchOpenMp(query1);
+    std::vector<CollisionProxy> results = collision_manager_m.searchOpenMp(query1);
 
     EXPECT_GT(results.size(), 0) << "Search should return at least one result";
 
-    for (const auto *collision : results)
+    for (const auto collision : results)
     {
-        EXPECT_TRUE(collision->latitude.has_value() && (latitude - epsilon) <= collision->latitude.value() &&
-        collision->latitude.value() <= (latitude + epsilon) &&
-        collision->longitude.has_value() && (longitude - epsilon) <= collision->longitude.value() &&
-        collision->longitude.value() <= (longitude + epsilon) &&
-        collision->crash_date > date1 && collision->crash_date < date2 && collision->borough == borough)
+        EXPECT_TRUE(collision.latitude->has_value() && (latitude - epsilon) <= collision.latitude->value() &&
+        collision.latitude->value() <= (latitude + epsilon) &&
+        collision.longitude->has_value() && (longitude - epsilon) <= collision.longitude->value() &&
+        collision.longitude->value() <= (longitude + epsilon) &&
+        collision.crash_date->value() > date1 && collision.crash_date->value() < date2 && collision.borough->value() == borough)
             << "Each result should be located in the borough " << borough << " and have latitude in between "
              << (latitude - epsilon) << " and " << (latitude + epsilon)
             << " . The longitude is in between " << (longitude - epsilon) << " and " << (longitude + epsilon)
