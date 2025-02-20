@@ -193,13 +193,16 @@ BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchRangeofCoordinates_DateRange
         std::chrono::day{29}
     };
 
-    Query query = Query::create(CollisionField::BOROUGH, QueryType::EQUALS,borough)
-                      .add(CollisionField::LATITUDE, QueryType::GREATER_THAN, latitude)
-                      .add(CollisionField::LATITUDE, QueryType::LESS_THAN, latitude)
-                      .add(CollisionField::LONGITUDE, QueryType::GREATER_THAN, longitude)
-                      .add(CollisionField::LONGITUDE, QueryType::LESS_THAN, longitude)
-                      .add(CollisionField::CRASH_DATE, QueryType::GREATER_THAN, date1)
-                      .add(CollisionField::CRASH_DATE, QueryType::LESS_THAN, date2);
+ // The range we're searching
+    float epsilon = 0.01f; // approximately 1 km radius
+
+    Query query = Query::create(CollisionField::BOROUGH, QueryType::EQUALS, borough)
+                       .add(CollisionField::LATITUDE, QueryType::GREATER_THAN, latitude - epsilon)
+                       .add(CollisionField::LATITUDE, QueryType::LESS_THAN, latitude + epsilon)
+                       .add(CollisionField::LONGITUDE, QueryType::GREATER_THAN, longitude - epsilon)
+                       .add(CollisionField::LONGITUDE, QueryType::LESS_THAN, longitude + epsilon)
+                       .add(CollisionField::CRASH_DATE, QueryType::GREATER_THAN, date1)
+                       .add(CollisionField::CRASH_DATE, QueryType::LESS_THAN, date2);
 
     for(auto _ : state) {
         std::vector<CollisionProxy*> results = collision_manager->searchOpenMp(query);
