@@ -1,11 +1,36 @@
 #include "collision.hpp"
+
 #include "query.hpp"
 
 #include <chrono>
 #include <iostream>
 #include <format>
+#include <numeric>
+#include <omp.h>
 #include <optional>
 #include <string>
+
+template<class T>
+bool equals_is_less_than(const FieldQuery& query, const std::optional<T>& value) {
+    const QueryType& type = query.get_type();
+    const T& query_value = std::get<T>(query.get_value());
+
+    if (!value.has_value()) {
+        return false;
+    }
+
+    if constexpr (std::is_same_v<float, T> || std::is_same_v<std::size_t, T> || std::is_same_v<std::chrono::year_month_day, T> ||
+                  std::is_same_v<std::uint8_t, T> || std::is_same_v<std::uint32_t, T>) {
+        switch(type) {
+        case QueryType::EQUALS:
+            return *value < query_value;
+        default:
+            throw std::runtime_error("Unsupported QueryType for float/std::size_t/std::chrono::year_month_day/std::uint8_t/std::uint32_t");
+        }
+    }
+
+    throw std::runtime_error("Unsupported value type");
+}
 
 template<class T>
 bool do_match(const FieldQuery& query, const std::optional<T>& value) {
@@ -76,7 +101,7 @@ void match_field(const FieldQuery& query,
                  const std::size_t start_index,
                  const std::size_t end_index,
                  const std::vector<T>& items,
-                 std::vector<std::uint8_t>& matches) {
+                 std::span<std::uint8_t>& matches) {
     for (std::size_t index = 0; index < matches.size(); ++index) {
         if (matches[index]) {
             bool match = do_match(query, items[start_index + index]);
@@ -86,88 +111,334 @@ void match_field(const FieldQuery& query,
     }
 }
 
-void Collisions::match(const FieldQuery& query,
+// Start: AI Generated Binary Search Code
+// ======================================
+template<class T>
+const std::uint32_t* binary_search_find_first_lower_match(const FieldQuery& query,
+                                                          const std::size_t start_index,
+                                                          const std::size_t end_index,
+                                                          const std::vector<T>& items,
+                                                          const std::vector<std::uint32_t>& items_index) {
+    int low = start_index;
+    int high = end_index - 1;
+    const std::uint32_t* result = nullptr;
+
+    while (low <= high) {
+        int mid = low + (high - low) / 2;
+
+        if (do_match(query, items[items_index[mid]])) {
+            result = &items_index[mid];
+            high = mid - 1;
+        } else {
+            if (query.get_type() == QueryType::EQUALS) {
+                if (equals_is_less_than(query, items[items_index[mid]])) {
+                    low = mid + 1;
+                } else {
+                    high = mid - 1;
+                }
+            } else if (query.get_type() == QueryType::LESS_THAN) {
+                high = mid - 1;
+            } else {
+                low = mid + 1;
+            }
+        }
+    }
+
+    return result;
+}
+
+template<class T>
+const std::uint32_t* binary_search_find_last_upper_match(const FieldQuery& query,
+                                                         const std::size_t start_index,
+                                                         const std::size_t end_index,
+                                                         const std::vector<T>& items,
+                                                         const std::vector<std::uint32_t>& items_index) {
+    int low = start_index;
+    int high = end_index - 1;
+    const std::uint32_t* result = nullptr;
+
+    while (low <= high) {
+        int mid = low + (high - low) / 2;
+
+        if (do_match(query, items[items_index[mid]])) {
+            result = &items_index[mid];
+            low = mid + 1;
+        } else {
+            if (query.get_type() == QueryType::EQUALS) {
+                if (equals_is_less_than(query, items[items_index[mid]])) {
+                    low = mid + 1;
+                } else {
+                    high = mid - 1;
+                }
+            } else if (query.get_type() == QueryType::LESS_THAN) {
+                high = mid - 1;
+            } else {
+                low = mid + 1;
+            }
+        }
+    }
+
+    return result;
+}
+// End: AI Generated Binary Search Code
+// ====================================
+
+template<class T>
+void match_indexed_field(const FieldQuery& query,
+                         const std::size_t start_index,
+                         const std::size_t end_index,
+                         const std::vector<T>& items,
+                         const std::vector<std::uint32_t>& items_index,
+                         std::span<std::uint8_t>& matches) {
+
+    // Using binary search we find the indexes of the first and last matching items.
+    // We therefore know that everything outside this range is not a match, and do not need
+    // to call match on every single item anymore.
+
+    const std::uint32_t* lower_bound = binary_search_find_first_lower_match(
+        query, start_index, end_index, items, items_index
+    );
+    const std::uint32_t* upper_bound = binary_search_find_last_upper_match(
+        query, start_index, end_index, items, items_index
+    );
+
+    // If either lower or upper bound are null then unmatch all indexes
+    if (lower_bound == nullptr || upper_bound == nullptr) {
+        for (std::size_t index = 0; index < end_index - start_index; ++index) {
+            matches[items_index[index + start_index]] = false;
+        }
+        return;
+    }
+
+    const std::uint32_t lower_bound_index = lower_bound - &(items_index.begin() + start_index)[0];
+    const std::uint32_t upper_bound_index = upper_bound - &(items_index.begin() + start_index)[0] + 1;
+
+    // Unmatch anything before lower_bound
+    for (std::size_t index = 0; index < lower_bound_index; ++index) {
+        matches[items_index[index + start_index]] = false;
+    }
+
+    // Unmatch anything after upper_bound
+    for (std::size_t index = upper_bound_index; index < end_index - start_index; ++index) {
+        matches[items_index[index + start_index]] = false;
+    }
+}
+
+IndexedCollisions::IndexedCollisions(Collisions& collisions)
+  : collisions_{collisions}
+{
+    init_proxies();
+    init_indexes();
+}
+
+IndexedCollisions::IndexedCollisions()
+  : collisions_{}
+{
+}
+
+const CollisionProxy IndexedCollisions::index_to_collision(const std::size_t index) {
+    CollisionProxy collision{};
+    collision.crash_date = &(collisions_.crash_dates[index]);
+    collision.crash_time = &(collisions_.crash_times[index]);
+    collision.borough = &(collisions_.boroughs[index]);
+    collision.zip_code = &(collisions_.zip_codes[index]);
+    collision.latitude = &(collisions_.latitudes[index]);
+    collision.longitude = &(collisions_.longitudes[index]);
+    collision.location = &(collisions_.locations[index]);
+    collision.on_street_name = &(collisions_.on_street_names[index]);
+    collision.cross_street_name = &(collisions_.cross_street_names[index]);
+    collision.off_street_name = &(collisions_.off_street_names[index]);
+    collision.number_of_persons_injured = &(collisions_.numbers_of_persons_injured[index]);
+    collision.number_of_persons_killed = &(collisions_.numbers_of_persons_killed[index]);
+    collision.number_of_pedestrians_injured = &(collisions_.numbers_of_pedestrians_injured[index]);
+    collision.number_of_pedestrians_killed = &(collisions_.numbers_of_pedestrians_killed[index]);
+    collision.number_of_cyclist_injured = &(collisions_.numbers_of_cyclist_injured[index]);
+    collision.number_of_cyclist_killed = &(collisions_.numbers_of_cyclist_killed[index]);
+    collision.number_of_motorist_injured = &(collisions_.numbers_of_motorist_injured[index]);
+    collision.number_of_motorist_killed = &(collisions_.numbers_of_motorist_killed[index]);
+    collision.contributing_factor_vehicle_1 = &(collisions_.contributing_factor_vehicles_1[index]);
+    collision.contributing_factor_vehicle_2 = &(collisions_.contributing_factor_vehicles_2[index]);
+    collision.contributing_factor_vehicle_3 = &(collisions_.contributing_factor_vehicles_3[index]);
+    collision.contributing_factor_vehicle_4 = &(collisions_.contributing_factor_vehicles_4[index]);
+    collision.contributing_factor_vehicle_5 = &(collisions_.contributing_factor_vehicles_5[index]);
+    collision.collision_id = &(collisions_.collision_ids[index]);
+    collision.vehicle_type_code_1 = &(collisions_.vehicle_type_codes_1[index]);
+    collision.vehicle_type_code_2 = &(collisions_.vehicle_type_codes_2[index]);
+    collision.vehicle_type_code_3 = &(collisions_.vehicle_type_codes_3[index]);
+    collision.vehicle_type_code_4 = &(collisions_.vehicle_type_codes_4[index]);
+    collision.vehicle_type_code_5 = &(collisions_.vehicle_type_codes_5[index]);
+    return collision;
+}
+
+void IndexedCollisions::init_proxies() {
+    this->proxies_ = {};
+    for (std::size_t index = 0; index < collisions_.size(); ++index) {
+        proxies_.push_back(index_to_collision(index));
+    }
+
+    this->proxy_ptrs_ = {};
+    for (std::size_t index = 0; index < collisions_.size(); ++index) {
+        proxy_ptrs_.push_back(&proxies_[index]);
+    }
+}
+
+template<class T>
+void init_index(T& vec_data, std::vector<uint32_t>& sorted_indexes) {
+    sorted_indexes = std::vector<uint32_t>(vec_data.size());
+    std::iota(sorted_indexes.begin(), sorted_indexes.end(), 0);
+    std::sort(sorted_indexes.begin(), sorted_indexes.end(), [&vec_data, &sorted_indexes](const uint32_t first, const uint32_t second) {
+        if (!vec_data[first].has_value() && !vec_data[second].has_value()) {
+            return false;
+        } else if (!vec_data[first].has_value()) {
+            return false;
+        } else if (!vec_data[second].has_value()) {
+            return true;
+        } else {
+            return vec_data[first].value() < vec_data[second].value();
+        }});
+}
+
+void IndexedCollisions::init_indexes() {
+    #pragma omp parallel
+    {
+        #pragma omp single
+        {
+            #pragma omp task
+            {
+                init_index(collisions_.crash_dates, sorted_crash_dates);
+            }
+            #pragma omp task
+            {
+                init_index(collisions_.zip_codes, sorted_zip_codes);
+            }
+            #pragma omp task
+            {
+                init_index(collisions_.latitudes, sorted_latitudes);
+            }
+            #pragma omp task
+            {
+                init_index(collisions_.longitudes, sorted_longitudes);
+            }
+            #pragma omp task
+            {
+                init_index(collisions_.numbers_of_persons_injured, sorted_numbers_of_persons_injured);
+            }
+            #pragma omp task
+            {
+                init_index(collisions_.numbers_of_persons_killed, sorted_numbers_of_persons_killed);
+            }
+            #pragma omp task
+            {
+                init_index(collisions_.numbers_of_pedestrians_injured, sorted_numbers_of_pedestrians_injured);
+            }
+            #pragma omp task
+            {
+                init_index(collisions_.numbers_of_pedestrians_killed, sorted_numbers_of_pedestrians_killed);
+            }
+            #pragma omp task
+            {
+                init_index(collisions_.numbers_of_cyclist_injured, sorted_numbers_of_cyclist_injured);
+            }
+            #pragma omp task
+            {
+                init_index(collisions_.numbers_of_cyclist_killed, sorted_numbers_of_cyclist_killed);
+            }
+            #pragma omp task
+            {
+                init_index(collisions_.numbers_of_motorist_injured, sorted_numbers_of_motorist_injured);
+            }
+            #pragma omp task
+            {
+                init_index(collisions_.numbers_of_motorist_killed, sorted_numbers_of_motorist_killed);
+            }
+            #pragma omp task
+            {
+                init_index(collisions_.collision_ids, sorted_collision_ids);
+            }
+        }
+    }
+
+// TODO: support crash_times (requires converting all entries to durations for sorting comparisons to work)
+//    init_index(collisions_.crash_times, sorted_crash_times);
+}
+
+void IndexedCollisions::match(const FieldQuery& query,
                        const std::size_t start_index,
                        const std::size_t end_index,
                        std::vector<std::uint8_t>& matches) const {
     const CollisionField& name = query.get_name();
 
+    std::span<std::uint8_t> matches_span;
+    if (is_indexed_field(name)) {
+        // Send whole matches vector to match function
+        // because the indexes can reference anywhere in the global collisions
+        matches_span = {matches.data(), matches.size()};
+    } else {
+        // Send subset of matches vector to match function
+        // because the indexes operated on will be inside the chunk only
+        matches_span = {matches.data() + start_index, end_index - start_index};
+    }
+
     if (name == CollisionField::CRASH_DATE) {
-        match_field(query, start_index, end_index, this->crash_dates, matches);
+        match_indexed_field(query, start_index, end_index, collisions_.crash_dates, sorted_crash_dates, matches_span);
     } else if (name == CollisionField::CRASH_TIME) {
-        match_field(query, start_index, end_index, this->crash_times, matches);
+        match_field(query, start_index, end_index, collisions_.crash_times, matches_span);
     } else if (name == CollisionField::BOROUGH) {
-        match_field(query, start_index, end_index, this->boroughs, matches);
+        match_field(query, start_index, end_index, collisions_.boroughs, matches_span);
     } else if (name == CollisionField::ZIP_CODE) {
-        match_field(query, start_index, end_index, this->zip_codes, matches);
+        match_indexed_field(query, start_index, end_index, collisions_.zip_codes, sorted_zip_codes, matches_span);
     } else if (name == CollisionField::LATITUDE) {
-        match_field(query, start_index, end_index, this->latitudes, matches);
+        match_indexed_field(query, start_index, end_index, collisions_.latitudes, sorted_latitudes, matches_span);
     } else if (name == CollisionField::LONGITUDE) {
-        match_field(query, start_index, end_index, this->longitudes, matches);
+        match_indexed_field(query, start_index, end_index, collisions_.longitudes, sorted_longitudes, matches_span);
     } else if (name == CollisionField::LOCATION) {
-        match_field(query, start_index, end_index, this->locations, matches);
+        match_field(query, start_index, end_index, collisions_.locations, matches_span);
     } else if (name == CollisionField::ON_STREET_NAME) {
-        match_field(query, start_index, end_index, this->on_street_names, matches);
+        match_field(query, start_index, end_index, collisions_.on_street_names, matches_span);
     } else if (name == CollisionField::CROSS_STREET_NAME) {
-        match_field(query, start_index, end_index, this->cross_street_names, matches);
+        match_field(query, start_index, end_index, collisions_.cross_street_names, matches_span);
     } else if (name == CollisionField::OFF_STREET_NAME) {
-        match_field(query, start_index, end_index, this->off_street_names, matches);
+        match_field(query, start_index, end_index, collisions_.off_street_names, matches_span);
     } else if (name == CollisionField::NUMBER_OF_PERSONS_INJURED) {
-        match_field(query, start_index, end_index, this->numbers_of_persons_injured, matches);
+        match_indexed_field(query, start_index, end_index, collisions_.numbers_of_persons_injured, sorted_numbers_of_persons_injured, matches_span);
     } else if (name == CollisionField::NUMBER_OF_PERSONS_KILLED) {
-        match_field(query, start_index, end_index, this->numbers_of_persons_killed, matches);
+        match_indexed_field(query, start_index, end_index, collisions_.numbers_of_persons_killed, sorted_numbers_of_persons_killed, matches_span);
     } else if (name == CollisionField::NUMBER_OF_PEDESTRIANS_INJURED) {
-        match_field(query, start_index, end_index, this->numbers_of_pedestrians_injured, matches);
+        match_indexed_field(query, start_index, end_index, collisions_.numbers_of_pedestrians_injured, sorted_numbers_of_pedestrians_injured, matches_span);
     } else if (name == CollisionField::NUMBER_OF_PEDESTRIANS_KILLED) {
-        match_field(query, start_index, end_index, this->numbers_of_pedestrians_killed, matches);
+        match_indexed_field(query, start_index, end_index, collisions_.numbers_of_pedestrians_killed, sorted_numbers_of_pedestrians_killed, matches_span);
     } else if (name == CollisionField::NUMBER_OF_CYCLIST_INJURED) {
-        match_field(query, start_index, end_index, this->numbers_of_cyclist_injured, matches);
+        match_indexed_field(query, start_index, end_index, collisions_.numbers_of_cyclist_injured, sorted_numbers_of_cyclist_injured, matches_span);
     } else if (name == CollisionField::NUMBER_OF_CYCLIST_KILLED) {
-        match_field(query, start_index, end_index, this->numbers_of_cyclist_killed, matches);
+        match_indexed_field(query, start_index, end_index, collisions_.numbers_of_cyclist_killed, sorted_numbers_of_cyclist_killed, matches_span);
     } else if (name == CollisionField::NUMBER_OF_MOTORIST_INJURED) {
-        match_field(query, start_index, end_index, this->numbers_of_motorist_injured, matches);
+        match_indexed_field(query, start_index, end_index, collisions_.numbers_of_motorist_injured, sorted_numbers_of_motorist_injured, matches_span);
     } else if (name == CollisionField::NUMBER_OF_MOTORIST_KILLED) {
-        match_field(query, start_index, end_index, this->numbers_of_motorist_killed, matches);
+        match_indexed_field(query, start_index, end_index, collisions_.numbers_of_motorist_killed, sorted_numbers_of_motorist_killed, matches_span);
     } else if (name == CollisionField::CONTRIBUTING_FACTOR_VEHICLE_1) {
-        match_field(query, start_index, end_index, this->contributing_factor_vehicles_1, matches);
+        match_field(query, start_index, end_index, collisions_.contributing_factor_vehicles_1, matches_span);
     } else if (name == CollisionField::CONTRIBUTING_FACTOR_VEHICLE_2) {
-        match_field(query, start_index, end_index, this->contributing_factor_vehicles_2, matches);
+        match_field(query, start_index, end_index, collisions_.contributing_factor_vehicles_2, matches_span);
     } else if (name == CollisionField::CONTRIBUTING_FACTOR_VEHICLE_3) {
-        match_field(query, start_index, end_index, this->contributing_factor_vehicles_3, matches);
+        match_field(query, start_index, end_index, collisions_.contributing_factor_vehicles_3, matches_span);
     } else if (name == CollisionField::CONTRIBUTING_FACTOR_VEHICLE_4) {
-        match_field(query, start_index, end_index, this->contributing_factor_vehicles_4, matches);
+        match_field(query, start_index, end_index, collisions_.contributing_factor_vehicles_4, matches_span);
     } else if (name == CollisionField::CONTRIBUTING_FACTOR_VEHICLE_5) {
-        match_field(query, start_index, end_index, this->contributing_factor_vehicles_5, matches);
+        match_field(query, start_index, end_index, collisions_.contributing_factor_vehicles_5, matches_span);
     } else if (name == CollisionField::COLLISION_ID) {
-        match_field(query, start_index, end_index, this->collision_ids, matches);
+        match_indexed_field(query, start_index, end_index, collisions_.collision_ids, sorted_collision_ids, matches_span);
     } else if (name == CollisionField::VEHICLE_TYPE_CODE_1) {
-        match_field(query, start_index, end_index, this->vehicle_type_codes_1, matches);
+        match_field(query, start_index, end_index, collisions_.vehicle_type_codes_1, matches_span);
     } else if (name == CollisionField::VEHICLE_TYPE_CODE_2) {
-        match_field(query, start_index, end_index, this->vehicle_type_codes_2, matches);
+        match_field(query, start_index, end_index, collisions_.vehicle_type_codes_2, matches_span);
     } else if (name == CollisionField::VEHICLE_TYPE_CODE_3) {
-        match_field(query, start_index, end_index, this->vehicle_type_codes_3, matches);
+        match_field(query, start_index, end_index, collisions_.vehicle_type_codes_3, matches_span);
     } else if (name == CollisionField::VEHICLE_TYPE_CODE_4) {
-        match_field(query, start_index, end_index, this->vehicle_type_codes_4, matches);
+        match_field(query, start_index, end_index, collisions_.vehicle_type_codes_4, matches_span);
     } else if (name == CollisionField::VEHICLE_TYPE_CODE_5) {
-        match_field(query, start_index, end_index, this->vehicle_type_codes_5, matches);
+        match_field(query, start_index, end_index, collisions_.vehicle_type_codes_5, matches_span);
     }
 }
-
-/*
-bool Collisions::match(const Query& query, const std::size_t index) const {
-    const std::vector<FieldQuery>& field_queries = query.get();
-
-    for (const FieldQuery& field_query : field_queries) {
-        bool match = match_field(field_query, index);
-        match = field_query.invert_match() ? !match : match;
-        if (!match) {
-            return false;
-        }
-    }
-
-    return true;
-}
-*/
 
 std::ostream& operator<<(std::ostream& os, const CollisionProxy& collision) {
     os << "Collision: {";

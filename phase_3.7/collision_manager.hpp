@@ -21,11 +21,6 @@ private:
     CollisionManager(Collisions& collisions);
     CollisionManager(const std::vector<Collision>& collisions);
 
-    const CollisionProxy index_to_collision(const std::size_t index);
-    void create_proxies();
-
     std::string initialization_error_;
-    Collisions collisions_;
-    std::vector<CollisionProxy> collision_proxies_;
-
+    IndexedCollisions indexed_collisions_;
 };

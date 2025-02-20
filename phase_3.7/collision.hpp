@@ -104,17 +104,51 @@ struct Collisions {
     std::vector<std::optional<std::string>> vehicle_type_codes_4;
     std::vector<std::optional<std::string>> vehicle_type_codes_5;
 
-    void match(const FieldQuery& query,
-               const std::size_t start_index,
-               const std::size_t end_index,
-               std::vector<std::uint8_t>& matches) const;
-
     void add(const Collision& collision);
     void combine(const Collisions& other);
     std::size_t size();
 
 private:
     std::size_t size_;
+};
+
+class IndexedCollisions {
+public:
+    IndexedCollisions();
+    IndexedCollisions(Collisions& collisions);
+
+    // Underlying data from csv
+    Collisions collisions_;
+
+    // For API to return CollisionProxy* instances instead of just integer indexes into data
+    std::vector<CollisionProxy> proxies_;
+    std::vector<CollisionProxy*> proxy_ptrs_;
+
+    // Sorted indexes by various fields for fast queries
+    std::vector<std::uint32_t> sorted_crash_dates;
+    std::vector<std::uint32_t> sorted_crash_times;
+    std::vector<std::uint32_t> sorted_zip_codes;
+    std::vector<std::uint32_t> sorted_latitudes;
+    std::vector<std::uint32_t> sorted_longitudes;
+    std::vector<std::uint32_t> sorted_numbers_of_persons_injured;
+    std::vector<std::uint32_t> sorted_numbers_of_persons_killed;
+    std::vector<std::uint32_t> sorted_numbers_of_pedestrians_injured;
+    std::vector<std::uint32_t> sorted_numbers_of_pedestrians_killed;
+    std::vector<std::uint32_t> sorted_numbers_of_cyclist_injured;
+    std::vector<std::uint32_t> sorted_numbers_of_cyclist_killed;
+    std::vector<std::uint32_t> sorted_numbers_of_motorist_injured;
+    std::vector<std::uint32_t> sorted_numbers_of_motorist_killed;
+    std::vector<std::uint32_t> sorted_collision_ids;
+
+    void match(const FieldQuery& query,
+               const std::size_t start_index,
+               const std::size_t end_index,
+               std::vector<std::uint8_t>& matches) const;
+
+private:
+    void init_proxies();
+    void init_indexes();
+    const CollisionProxy index_to_collision(const std::size_t index);
 };
 
 std::ostream& operator<<(std::ostream& os, const CollisionProxy& collision);
