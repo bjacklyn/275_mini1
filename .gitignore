@@ -2,3 +2,5 @@ phase_*/b/
 phase_*/build/
 
 *.tar.gz
+
+.vscode
