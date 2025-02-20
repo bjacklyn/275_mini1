@@ -686,8 +686,8 @@ TEST_F(CollisionManagerTest, Query_Match_VehicleType) {
 
 TEST_F(CollisionManagerTest, CompoundQuery_MatchRangeofCoordinates_Date) {
 
-    float latitude = 40.667202f;
-    float longitude = -73.891624f;
+    std::optional<float> latitude = 40.667202f;
+    std::optional<float> longitude = -73.891624f;
 
     std::chrono::year_month_day date1{
         std::chrono::year{2021},
@@ -704,10 +704,10 @@ TEST_F(CollisionManagerTest, CompoundQuery_MatchRangeofCoordinates_Date) {
 
     float epsilon = 0.01f;
 
-    Query query1 = Query::create("latitude", QueryType::GREATER_THAN, latitude - epsilon)
-    .add("latitude", QueryType::LESS_THAN, latitude + epsilon)
-    .add("longitude", QueryType::GREATER_THAN, longitude - epsilon)
-    .add("longitude", QueryType::LESS_THAN, longitude + epsilon)
+    Query query1 = Query::create("latitude", QueryType::GREATER_THAN, latitude.value() - epsilon)
+    .add("latitude", QueryType::LESS_THAN, latitude.value() + epsilon)
+    .add("longitude", QueryType::GREATER_THAN, longitude.value() - epsilon)
+    .add("longitude", QueryType::LESS_THAN, longitude.value() + epsilon)
     .add("crash_date" , QueryType::GREATER_THAN, date1)
     .add("crash_date" , QueryType::LESS_THAN, date2)
     .add("borough", QueryType::EQUALS, borough);
@@ -716,20 +716,21 @@ TEST_F(CollisionManagerTest, CompoundQuery_MatchRangeofCoordinates_Date) {
 
     EXPECT_GT(results.size(), 0) << "Search should return at least one result";
 
-    for (const auto collision : results)
+    for (const auto& collision : results)
     {
-        EXPECT_TRUE(collision.latitude->has_value() && (latitude - epsilon) <= collision.latitude->value() &&
-        collision.latitude->value() <= (latitude + epsilon) &&
-        collision.longitude->has_value() && (longitude - epsilon) <= collision.longitude->value() &&
-        collision.longitude->value() <= (longitude + epsilon) &&
-        collision.crash_date->value() > date1 && collision.crash_date->value() < date2 && collision.borough->value() == borough)
+        EXPECT_TRUE((*collision.latitude).has_value() && (latitude.value() - epsilon) <= (*collision.latitude).value() &&
+                    (*collision.latitude).value() <= (latitude.value() + epsilon) &&
+                    (*collision.longitude).has_value() && (longitude.value() - epsilon) <= (*collision.longitude).value() &&
+                    (*collision.longitude).value() <= (longitude.value() + epsilon) &&
+                    (*collision.crash_date).value() > date1 && (*collision.crash_date).value() < date2 && (*collision.borough).value() == borough)
             << "Each result should be located in the borough " << borough << " and have latitude in between "
-             << (latitude - epsilon) << " and " << (latitude + epsilon)
-            << " . The longitude is in between " << (longitude - epsilon) << " and " << (longitude + epsilon)
+            << (latitude.value() - epsilon) << " and " << (latitude.value() + epsilon)
+            << " . The longitude is in between " << (longitude.value() - epsilon) << " and " << (longitude.value() + epsilon)
             << " . The crash date is in between " << date1 << " and " << date2;
     }
 
-    std::cout << "Found " << results.size() << " collisions with latitude in between " << (latitude - epsilon) << " and " << (latitude + epsilon) <<
-    " and longitude in between " << (longitude - epsilon) << " and " << (longitude + epsilon) << " . The crash date is in between "
+
+    std::cout << "Found " << results.size() << " collisions with latitude in between " << (latitude.value() - epsilon) << " and " << (latitude.value() + epsilon) <<
+    " and longitude in between " << (longitude.value() - epsilon) << " and " << (longitude.value() + epsilon) << " . The crash date is in between "
     << date1 << " and " << date2 << std::endl;
 }
