@@ -201,6 +201,7 @@ BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchRangeofCoordinates_DateRange
     float epsilon = 0.01f; // approximately 1 km radius
 
     Query query = Query::create("borough", QueryType::EQUALS, borough)
+                       .add("zip_code", QueryType::EQUALS, 11208ULL)
                        .add("latitude", QueryType::GREATER_THAN, latitude - epsilon)
                        .add("latitude", QueryType::LESS_THAN, latitude + epsilon)
                        .add("longitude", QueryType::GREATER_THAN, longitude - epsilon)

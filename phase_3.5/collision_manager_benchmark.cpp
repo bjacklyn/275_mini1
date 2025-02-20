@@ -203,6 +203,7 @@ BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchRangeofCoordinates_DateRange
     float epsilon = 0.01f; // approximately 1 km radius
 
     Query query = Query::create(CollisionField::BOROUGH, QueryType::EQUALS, borough)
+                       .add(CollisionField::ZIP_CODE, QueryType::EQUALS, 11208ULL)
                        .add(CollisionField::LATITUDE, QueryType::GREATER_THAN, latitude - epsilon)
                        .add(CollisionField::LATITUDE, QueryType::LESS_THAN, latitude + epsilon)
                        .add(CollisionField::LONGITUDE, QueryType::GREATER_THAN, longitude - epsilon)
