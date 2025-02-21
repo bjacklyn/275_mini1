@@ -201,9 +201,10 @@ BENCHMARK_DEFINE_F(CollisionManagerBenchmark, SearchRangeofCoordinates_DateRange
 
  // The range we're searching
     float epsilon = 0.01f; // approximately 1 km radius
+    std::uint32_t zip_code = 11208;
 
     Query query = Query::create(CollisionField::BOROUGH, QueryType::EQUALS, borough)
-                       .add(CollisionField::ZIP_CODE, QueryType::EQUALS, 11208ULL)
+                       .add(CollisionField::ZIP_CODE, QueryType::EQUALS, zip_code)
                        .add(CollisionField::LATITUDE, QueryType::GREATER_THAN, latitude - epsilon)
                        .add(CollisionField::LATITUDE, QueryType::LESS_THAN, latitude + epsilon)
                        .add(CollisionField::LONGITUDE, QueryType::GREATER_THAN, longitude - epsilon)
