@@ -3,6 +3,7 @@
 #include "collision_parser.hpp"
 #include "query.hpp"
 
+#include <cstring>
 #include <string>
 
 #include <omp.h>
@@ -47,7 +48,9 @@ const std::vector<CollisionProxy*> CollisionManager::searchOpenMp(const Query& q
     std::vector<std::vector<CollisionProxy*>> thread_local_results(num_threads);
 
     // Initialize all matches to true initialially
-    std::vector<std::uint8_t> matches(indexed_collisions_.collisions_.size(), true);
+    std::uint8_t* matches_data = new std::uint8_t[indexed_collisions_.collisions_.size()];
+    std::span matches = {matches_data, indexed_collisions_.collisions_.size()};
+    memset(matches.data(), 1, matches.size());
 
     #pragma omp parallel
     {
@@ -74,6 +77,8 @@ const std::vector<CollisionProxy*> CollisionManager::searchOpenMp(const Query& q
     for (const auto& local_results : thread_local_results) {
         results.insert(results.end(), local_results.begin(), local_results.end());
     }
+
+    delete[] matches_data;
 
     return results;
 }

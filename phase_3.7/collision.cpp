@@ -106,7 +106,9 @@ void match_field(const FieldQuery& query,
         if (matches[index]) {
             bool match = do_match(query, items[start_index + index]);
             match = query.invert_match() ? !match : match;
-            matches[index] = matches[index] && match;
+            if (!match) {
+                matches[index] = false;
+            }
         }
     }
 }
