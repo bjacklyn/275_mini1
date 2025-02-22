@@ -101,13 +101,17 @@ void match_field(const FieldQuery& query,
                  const std::size_t start_index,
                  const std::size_t end_index,
                  const std::vector<T>& items,
-                 std::span<std::uint8_t>& matches) {
-    for (std::size_t index = 0; index < matches.size(); ++index) {
-        if (matches[index]) {
+                 std::span<std::uint8_t>& matches_span) {
+    std::uint8_t* matches = matches_span.data();
+    for (std::size_t index = 0; index < matches_span.size(); ++index) {
+        if (*matches) {
             bool match = do_match(query, items[start_index + index]);
             match = query.invert_match() ? !match : match;
-            matches[index] = matches[index] && match;
+            if (!match) {
+                *matches = false;
+            }
         }
+        ++matches;
     }
 }
 
@@ -189,7 +193,9 @@ void match_indexed_field(const FieldQuery& query,
                          const std::size_t end_index,
                          const std::vector<T>& items,
                          const std::vector<std::uint32_t>& items_index,
-                         std::span<std::uint8_t>& matches) {
+                         std::span<std::uint8_t>& matches_span) {
+
+    std::uint8_t* matches = matches_span.data();
 
     // Using binary search we find the indexes of the first and last matching items.
     // We therefore know that everything outside this range is not a match, and do not need
@@ -205,7 +211,7 @@ void match_indexed_field(const FieldQuery& query,
     // If either lower or upper bound are null then unmatch all indexes
     if (lower_bound == nullptr || upper_bound == nullptr) {
         for (std::size_t index = 0; index < end_index - start_index; ++index) {
-            matches[items_index[index + start_index]] = false;
+            *(matches + items_index[index + start_index]) = false;
         }
         return;
     }
@@ -215,12 +221,12 @@ void match_indexed_field(const FieldQuery& query,
 
     // Unmatch anything before lower_bound
     for (std::size_t index = 0; index < lower_bound_index; ++index) {
-        matches[items_index[index + start_index]] = false;
+        *(matches + items_index[index + start_index]) = false;
     }
 
     // Unmatch anything after upper_bound
     for (std::size_t index = upper_bound_index; index < end_index - start_index; ++index) {
-        matches[items_index[index + start_index]] = false;
+        *(matches + items_index[index + start_index]) = false;
     }
 }
 
@@ -365,14 +371,14 @@ void IndexedCollisions::init_indexes() {
 void IndexedCollisions::match(const FieldQuery& query,
                        const std::size_t start_index,
                        const std::size_t end_index,
-                       std::vector<std::uint8_t>& matches) const {
+                       std::span<std::uint8_t> matches) const {
     const CollisionField& name = query.get_name();
 
     std::span<std::uint8_t> matches_span;
     if (is_indexed_field(name)) {
         // Send whole matches vector to match function
         // because the indexes can reference anywhere in the global collisions
-        matches_span = {matches.data(), matches.size()};
+        matches_span = matches;
     } else {
         // Send subset of matches vector to match function
         // because the indexes operated on will be inside the chunk only
