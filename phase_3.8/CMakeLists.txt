@@ -23,7 +23,44 @@ if(APPLE)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64")
 endif()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g3 -O3")
+
+# Enable Link-Time Optimizations for Clang only
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    cmake_policy(SET CMP0069 NEW)
+    set(CMAKE_POLICY_DEFAULT_CMP0069 NEW)
+
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT ipo_supported OUTPUT ipo_output)
+
+    if(ipo_supported)
+        set_property(GLOBAL PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -flto=thin")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flto=thin")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -flto=thin")
+        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -flto=thin")
+    endif()
+endif()
+
+option(ENABLE_PGO "Enable Profile Guided Optimization" OFF)
+option(GENERATE_PGO_PROFILE "Mode to build binary that generates profile files" OFF)
+
+if(ENABLE_PGO)
+    if(GENERATE_PGO_PROFILE)
+        if(CMAKE_CXX_COMPILER_ID MATCHES "GCC")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-generate")
+        elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-instr-generate")
+        endif()
+    else()
+        if(CMAKE_CXX_COMPILER_ID MATCHES "GCC")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-use")
+        elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-instr-use=${CMAKE_BINARY_DIR}/default.profdata -Wno-profile-instr-out-of-date")
+        endif()
+    endif()
+endif()
 
 if(OpenMP_CXX_FOUND)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
@@ -80,7 +117,7 @@ add_executable(
 target_link_libraries(
   collision_manager_benchmark
   collision_manager
-  benchmark::benchmark_main
+  benchmark::benchmark
 )
 
 add_executable(
