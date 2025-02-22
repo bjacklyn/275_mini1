@@ -234,4 +234,8 @@ BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchDatesEqualsSomeMatches)->I
 BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchDatesRangeSomeMatches)->Iterations(NUM_ITERATIONS);
 BENCHMARK_REGISTER_F(CollisionManagerBenchmark, SearchRangeofCoordinates_DateRangeSomeMatches)->Iterations(NUM_ITERATIONS);
 
-BENCHMARK_MAIN();
+//BENCHMARK_MAIN();
+int main(int argc, char**argv) {
+    ::benchmark::Initialize(&argc, argv);
+    ::benchmark::RunSpecifiedBenchmarks();
+}
